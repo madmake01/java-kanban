@@ -6,21 +6,16 @@ import java.util.Objects;
 
 
 public abstract class AbstractTask {
-    private static int nextId = 1;
     protected final int id;
-    protected final String name;
-    protected final String description;
+    protected String name;
+    protected String description;
     protected Status status;
 
-    protected AbstractTask(String name, String description) {
+    protected AbstractTask(int id, String name, String description, Status status) {
+        this.id = id;
         this.name = name;
         this.description = description;
-        this.id = generateId();
-        this.status = Status.NEW;
-    }
-
-    private static int generateId() {
-        return nextId++;
+        this.status = status;
     }
 
     public String getName() {
@@ -39,18 +34,8 @@ public abstract class AbstractTask {
         return status;
     }
 
-    @Override
-    public String toString() {
-        return "AbstractTask{" +
-                "id=" + id +
-                ", name='" + name + '\'' +
-                ", description='" + description + '\'' +
-                ", status=" + status +
-                '}';
-    }
-
     //В теории не было instanceof, но как иначе переопределить этот метод без переопределения его в наследниках, если
-    // задачи с одним id должны считаться одинаковыми по тз?
+    // задачи с одним id должны считаться одинаковыми по тз? Три раза класс сравнивать ?:)
     @Override
     public boolean equals(Object o) {
         if (!(o instanceof AbstractTask task)) {
