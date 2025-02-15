@@ -5,10 +5,10 @@ import model.Subtask;
 import model.Task;
 import util.Status;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 public class TaskManager {
     private final Map<Integer, Task> tasks;
@@ -27,95 +27,92 @@ public class TaskManager {
     }
 
     public List<Task> getTasks() {
-        return new ArrayList<>(tasks.values());
+        return List.copyOf(tasks.values());
     }
 
     public void deleteTasks() {
         tasks.clear();
     }
 
-    public Task getTaskById(int id) {
-        //todo validate or optional
-        return tasks.get(id);
+    public Optional<Task> getTaskById(int id) {
+        return Optional.ofNullable(tasks.get(id));
     }
 
     public void addTask(Task task) {
-        //todo validate
         int id = generateId();
         Task newTask = new Task(id, task);
         tasks.put(id, newTask);
     }
 
     public void updateTask(Task task) {
-        //todo validate
         tasks.put(task.getId(), task);
     }
 
     public void deleteTask(int id) {
-        //todo validate ?
         tasks.remove(id);
     }
 
     public List<Epic> getEpics() {
-        return new ArrayList<>(epics.values());
+        return List.copyOf(epics.values());
     }
 
     public void deleteEpics() {
         epics.clear();
     }
 
-    public Epic getEpicById(int id) {
-        //todo validate or optional
-        return epics.get(id);
+    public Optional<Epic> getEpicById(int id) {
+        return Optional.ofNullable(epics.get(id));
     }
 
     public void addEpic(Epic epic) {
-        //todo validate
         int id = generateId();
         Status newStatus = epic.checkStatus();
-        Epic newEpic = new Epic(id, epic,  newStatus);
+        Epic newEpic = new Epic(id, epic, newStatus);
         epics.put(id, newEpic);
     }
 
     public void updateEpic(Epic epic) {
-        //todo validate
         epics.put(epic.getId(), epic);
     }
 
     public void deleteEpic(int id) {
-        //todo validate ?
-       epics.remove(id);
-        //todo delete epic subtasks
+        epics.remove(id);
+    }
+
+    //не очень понятно что именно должно было быть аргументом: id ли Epic
+    public Optional<List<Subtask>> getEpicSubTasks(int id) {
+        Optional<Epic> optionalEpic = getEpicById(id);
+        if (optionalEpic.isEmpty()) {
+            return Optional.empty();
+        }
+
+        Epic epic = optionalEpic.get();
+        return Optional.of(epic.getSubTaskList());
     }
 
     public List<Subtask> getSubtasks() {
-        return new ArrayList<>(subtasks.values());
+        return List.copyOf(subtasks.values());
     }
 
     public void deleteSubtasks() {
-        //todo удалить из каждого эпика этот subtask
         subtasks.clear();
     }
 
-    public Subtask getSubtaskById(int id) {
-        //todo validate or optional
-        return subtasks.get(id);
+    public Optional<Subtask> getSubtaskById(int id) {
+        return Optional.ofNullable(subtasks.get(id));
     }
 
     public void addSubtask(Subtask subtask) {
         int id = generateId();
         Subtask newSubtask = new Subtask(id, subtask);
-        //todo проверить что epic есть в списке?
         subtasks.put(id, newSubtask);
     }
 
     public void updateSubtask(Subtask subtask) {
-        //todo validate
         subtasks.put(subtask.getId(), subtask);
     }
 
     public void deleteSubtask(int id) {
-        //todo remove subtask from epic
         subtasks.remove(id);
     }
 }

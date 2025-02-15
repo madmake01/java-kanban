@@ -8,6 +8,11 @@ import java.util.List;
 public class Epic extends AbstractTask {
     private final List<Subtask> subTaskList;
 
+    public Epic(String name, String description, Status status) {
+        super(-1, name, description, status);
+        subTaskList = new ArrayList<>();
+    }
+
     public Epic(int id, Epic epic, Status status) {
         super(id, epic.name, epic.description, status);
         this.subTaskList = epic.getSubTaskList();
@@ -15,6 +20,12 @@ public class Epic extends AbstractTask {
 
     public List<Subtask> getSubTaskList() {
         return List.copyOf(subTaskList);
+    }
+
+    @Override
+    public Status getStatus() {
+        this.status = checkStatus();
+        return status;
     }
 
     public Status checkStatus() {

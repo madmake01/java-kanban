@@ -34,10 +34,13 @@ public abstract class AbstractTask {
         return status;
     }
 
-    //В теории не было instanceof, но как иначе переопределить этот метод без переопределения его в наследниках, если
+    //В теории не было instanceof, но как иначе переопределить если
     // задачи с одним id должны считаться одинаковыми по тз? Три раза класс сравнивать ?:)
     @Override
     public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
         if (!(o instanceof AbstractTask task)) {
             return false;
         }

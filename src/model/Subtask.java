@@ -5,8 +5,8 @@ import util.Status;
 public class Subtask extends AbstractTask {
     private final Epic epic;
 
-    public Subtask(int id, String name, String description, Status status, Epic epic) {
-        super(id, name, description, status);
+    public Subtask(String name, String description, Status status, Epic epic) {
+        super(-1, name, description, status);
         this.epic = epic;
     }
 
