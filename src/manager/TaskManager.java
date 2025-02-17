@@ -7,13 +7,13 @@ import model.Task;
 import util.Status;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import static exception.TaskExceptionMessage.ASSOCIATED_EPIC_DOES_NOT_EXIST;
+import static exception.TaskExceptionMessage.EPICS_SUBTASKS_SHOULD_BE_EQUAL;
 import static exception.TaskExceptionMessage.EPIC_DOES_NOT_EXIST;
-import static exception.TaskExceptionMessage.SUBTASK_DOES_NOT_ASSOCIATED;
 import static exception.TaskExceptionMessage.SUBTASK_DOES_NOT_EXIST;
 import static exception.TaskExceptionMessage.TASK_DOES_NOT_EXIST;
 
@@ -29,9 +29,6 @@ public class TaskManager {
         subtasks = new HashMap<>();
     }
 
-    private int generateId() {
-        return nextId++;
-    }
 
     public List<Task> getTasks() {
         return List.copyOf(tasks.values());
@@ -56,13 +53,8 @@ public class TaskManager {
     }
 
     public void updateTask(Task task) {
-        int id = task.getId();
-        tasks.compute(id, (k, v) -> {
-            if (v == null) {
-                throw new NonexistentEntityException(TASK_DOES_NOT_EXIST + id);
-            }
-            return new Task(id, task);
-        });
+        Task taskToUpdate = getTaskById(task.getId());
+        taskToUpdate.update(task.getName(), task.getDescription(), task.getStatus());
     }
 
     public void deleteTask(int id) {
@@ -76,7 +68,7 @@ public class TaskManager {
         return List.copyOf(epics.values());
     }
 
-    public void deleteEpicsAndSubtasks() {
+    public void deleteEpics() {
         epics.clear();
         subtasks.clear();
     }
@@ -91,48 +83,38 @@ public class TaskManager {
 
     public void addEpic(Epic epic) {
         int id = generateId();
-        Status newStatus = calculateEpicStatus(epic);
-        Epic newEpic = new Epic(id, epic, newStatus);
+        Epic newEpic = new Epic(id, epic);
         epics.put(id, newEpic);
-
-        List<Subtask> newSubtasks = epic.getSubTaskList();
-        for (Subtask subtask : newSubtasks) {
-            addNewEpicSubtask(subtask);
-        }
     }
 
-    //todo рассчитать статус, разрешить обновлять только имена / описание или ебаться с листами сабтасок
+    //не разрешаю обновлять сабтаски эпика через этот метод, для обновления сабтасок по ТЗ существуют отдельные методы
     public void updateEpic(Epic epic) {
-        int idToUpdate = epic.getId();
+        Epic epicToUpdate = epics.get(epic.getId());
 
-        if (!epics.containsKey(idToUpdate)) {
-            throw new NonexistentEntityException(EPIC_DOES_NOT_EXIST + idToUpdate);
+        if (!compareEpicsSubtasks(epicToUpdate, epic)) {
+            throw new IllegalArgumentException(EPICS_SUBTASKS_SHOULD_BE_EQUAL);
         }
 
-        Epic oldEpic = epics.get(idToUpdate);
-
-        List<Subtask> oldEpicSubtasksId = oldEpic.getSubTaskList();
-        for (Subtask subtask : oldEpicSubtasksId) {
-            subtasks.remove(subtask.getId());
-        }
-
-        List<Subtask> newEpicSubtasks = epic.getSubTaskList();
-        for (Subtask subtask : newEpicSubtasks) {
-        //    addNewEpicSubtask(subtask);
-        }
-
-        epics.put(epic.getId(), epic);
+        Status newStatus = calculateEpicStatus(epicToUpdate);
+        epicToUpdate.update(epic.getName(), epic.getDescription(), newStatus);
     }
 
-    //todo удалить subtask
     public void deleteEpic(int id) {
         Epic removedEpic = epics.remove(id);
         if (removedEpic == null) {
             throw new NonexistentEntityException(EPIC_DOES_NOT_EXIST + id);
         }
+
+        List<Integer> subtasksIdToRemove = removedEpic.getSubTaskList().stream().map(Subtask::getId).toList();
+        for (Integer subtaskId : subtasksIdToRemove) {
+            Subtask removedSubtask = subtasks.remove(subtaskId);
+            //возможно излишняя проверка
+            if (removedSubtask == null) {
+                throw new NonexistentEntityException(SUBTASK_DOES_NOT_EXIST + subtaskId);
+            }
+        }
     }
 
-    //не очень понятно что именно должно было быть аргументом: id ли Epic
     public List<Subtask> getEpicSubTasks(int id) {
         Epic epic = getEpicById(id);
         return epic.getSubTaskList();
@@ -150,33 +132,38 @@ public class TaskManager {
         return subtask;
     }
 
-    //todo посмотреть еще раз, как будно хуйня какая-то с эпиком
-    private void addNewEpicSubtask(Subtask subtask) {
-        int id = generateId();
-        Subtask newSubtask = new Subtask(id, subtask);
-        int subtaskEpicId = subtask.getEpic().map(Epic::getId)
-                .orElseThrow(() -> new NonexistentEntityException(SUBTASK_DOES_NOT_ASSOCIATED + subtask));
-        if (!epics.containsKey(subtaskEpicId)) {
-            throw new NonexistentEntityException(ASSOCIATED_EPIC_DOES_NOT_EXIST + subtask);
+    public void deleteSubtasks() {
+        subtasks.clear();
+        for (Epic epic : epics.values()) {
+            epic.removeAllSubtasks();
         }
-        subtasks.put(id, newSubtask);
     }
 
     public void addSubtask(Subtask subtask, int epicId) {
         Epic epic = getEpicById(epicId);
+
         int id = generateId();
         Subtask newSubtask = new Subtask(id, subtask);
+
         epic.addSubtask(newSubtask);
+        updateEpic(epic);
         subtasks.put(id, newSubtask);
     }
-//todo хуево
-    public void updateSubtask(Subtask subtask) {
-        int idToUpdate = subtask.getId();
-        Epic changedEpic = deleteSubtask(idToUpdate);
 
+    public void updateSubtask(Subtask subtask) {
+        Subtask updatedSubtask = subtasks.get(subtask.getId());
+
+        Optional<Epic> optionalEpic = updatedSubtask.getEpic();
+        if (optionalEpic.isEmpty()) {
+            throw new NonexistentEntityException(EPIC_DOES_NOT_EXIST + subtask);
+        }
+
+        Epic epic = optionalEpic.get();
+        updatedSubtask.update(subtask.getName(), subtask.getDescription(), subtask.getStatus());
+        updateEpic(epic);
     }
 
-    public Epic deleteSubtask(int id) {
+    public void deleteSubtask(int id) {
         Subtask removedSubtask = subtasks.remove(id);
         if (removedSubtask == null) {
             throw new NonexistentEntityException(SUBTASK_DOES_NOT_EXIST + id);
@@ -189,10 +176,18 @@ public class TaskManager {
 
         Epic epic = optionalEpic.get();
         epic.removeSubtask(removedSubtask);
-        return epic;
+        updateEpic(epic);
     }
 
-    public Status calculateEpicStatus(Epic epic) {
+    private boolean compareEpicsSubtasks(Epic oldEpic, Epic newEpic) {
+        List<Subtask> oldSubtaskList = oldEpic.getSubTaskList();
+        List<Subtask> newSubtaskList = newEpic.getSubTaskList();
+
+        return oldSubtaskList.size() == newSubtaskList.size() &&
+                new HashSet<>(oldSubtaskList).containsAll(newSubtaskList);
+    }
+
+    private Status calculateEpicStatus(Epic epic) {
         List<Subtask> subTaskList = epic.getSubTaskList();
         if (subTaskList.isEmpty()) {
             return Status.NEW;
@@ -212,5 +207,9 @@ public class TaskManager {
             }
         }
         return hasNew ? Status.NEW : Status.DONE;
+    }
+
+    private int generateId() {
+        return nextId++;
     }
 }
