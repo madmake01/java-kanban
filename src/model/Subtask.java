@@ -1,21 +1,29 @@
 package model;
 
+import exception.NonexistentEntityException;
 import util.Status;
 
-public class Subtask extends AbstractTask {
-    private final Epic epic;
+import java.util.Optional;
 
-    public Subtask(String name, String description, Status status, Epic epic) {
+import static exception.TaskExceptionMessage.SUBTASK_DOES_NOT_ASSOCIATED;
+
+public class Subtask extends AbstractTask {
+    private Epic epic;
+
+    public Subtask(String name, String description, Status status) {
         super(-1, name, description, status);
-        this.epic = epic;
     }
 
     public Subtask(int id, Subtask subtask) {
-        super(id, subtask.getName(), subtask.getDescription(), subtask.getStatus());
-        this.epic = subtask.getEpic();
+        super(id, subtask.name, subtask.description, subtask.status);
+        this.epic = subtask.epic;
     }
 
-    public Epic getEpic() {
-        return epic;
+    public Optional<Epic> getEpic() {
+        return Optional.ofNullable(epic);
+    }
+
+    public void setEpic(Epic epic) {
+        this.epic = epic;
     }
 }

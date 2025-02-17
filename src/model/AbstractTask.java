@@ -4,7 +4,7 @@ import util.Status;
 
 import java.util.Objects;
 
-
+//abstactTask существует чтобы не нарушать принцип Лисков (update task, например)
 public abstract class AbstractTask {
     protected final int id;
     protected String name;

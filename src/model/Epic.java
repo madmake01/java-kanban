@@ -1,15 +1,22 @@
 package model;
 
+import exception.EntityAlreadyExistsException;
+import exception.NonexistentEntityException;
 import util.Status;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+
+import static exception.TaskExceptionMessage.SUBTASK_ALREADY_ASSOCIATED;
+import static exception.TaskExceptionMessage.SUBTASK_ALREADY_EXISTS;
+import static exception.TaskExceptionMessage.SUBTASK_DOES_NOT_EXIST;
 
 public class Epic extends AbstractTask {
     private final List<Subtask> subTaskList;
 
-    public Epic(String name, String description, Status status) {
-        super(-1, name, description, status);
+    public Epic(String name, String description) {
+        super(-1, name, description, Status.NEW);
         subTaskList = new ArrayList<>();
     }
 
@@ -19,33 +26,28 @@ public class Epic extends AbstractTask {
     }
 
     public List<Subtask> getSubTaskList() {
-        return List.copyOf(subTaskList);
+        return new ArrayList<>(subTaskList);
     }
 
-    @Override
-    public Status getStatus() {
-        this.status = checkStatus();
-        return status;
+    public void addSubtask(Subtask subtask) {
+        if (subTaskList.contains(subtask)) {
+            throw new EntityAlreadyExistsException(SUBTASK_ALREADY_EXISTS);
+        }
+
+        Optional<Epic> optionalEpic = subtask.getEpic();
+        if (optionalEpic.isPresent()) {
+            throw new EntityAlreadyExistsException(SUBTASK_ALREADY_ASSOCIATED);
+        }
+
+        subtask.setEpic(this);
+        subTaskList.add(subtask);
     }
 
-    public Status checkStatus() {
-        if (subTaskList.isEmpty()) {
-            return Status.NEW;
+    public void removeSubtask(Subtask subtask) {
+        if (!subTaskList.contains(subtask)) {
+            throw new NonexistentEntityException(SUBTASK_DOES_NOT_EXIST + subtask);
         }
-
-        boolean hasNew = false;
-
-        for (Subtask subtask : subTaskList) {
-            Status subtaskStatus = subtask.getStatus();
-
-            if (subtaskStatus == Status.IN_PROGRESS) {
-                return Status.IN_PROGRESS;
-            }
-
-            if (subtaskStatus == Status.NEW) {
-                hasNew = true;
-            }
-        }
-        return hasNew ? Status.NEW : Status.DONE;
+        subTaskList.remove(subtask);
+        subtask.setEpic(null);
     }
 }
