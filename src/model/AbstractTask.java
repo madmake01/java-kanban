@@ -4,7 +4,7 @@ import util.Status;
 
 import java.util.Objects;
 
-//abstactTask существует чтобы не нарушать принцип Лисков (update task, например)
+//abstractTask существует чтобы не нарушать принцип Лисков (update task, например)
 public abstract class AbstractTask {
     protected final int id;
     protected String name;
@@ -12,6 +12,15 @@ public abstract class AbstractTask {
     protected Status status;
 
     protected AbstractTask(int id, String name, String description, Status status) {
+        if (name == null || name.isBlank()) {
+            throw new IllegalArgumentException("Name is null or blank");
+        }
+        if (description == null || description.isBlank()) {
+            throw new IllegalArgumentException("Description is null or blank");
+        }
+        if (status == null) {
+            throw new IllegalArgumentException("Status is null");
+        }
         this.id = id;
         this.name = name;
         this.description = description;
@@ -32,6 +41,12 @@ public abstract class AbstractTask {
 
     public Status getStatus() {
         return status;
+    }
+
+    public void update(String name, String description, Status status) {
+        this.name = name;
+        this.description = description;
+        this.status = status;
     }
 
     //В теории не было instanceof, но как иначе переопределить если
