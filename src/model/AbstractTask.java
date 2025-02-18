@@ -5,10 +5,11 @@ import enums.Status;
 import java.util.Objects;
 
 public abstract class AbstractTask {
+    public static final int DEFAULT_ID = -1;
     protected final int id;
-    protected String name;
-    protected String description;
-    protected Status status;
+    protected final String name;
+    protected final String description;
+    protected final Status status;
 
     protected AbstractTask(int id, String name, String description, Status status) {
         if (name == null || name.isBlank()) {
@@ -26,6 +27,10 @@ public abstract class AbstractTask {
         this.status = status;
     }
 
+    public int getId() {
+        return id;
+    }
+
     public String getName() {
         return name;
     }
@@ -34,18 +39,8 @@ public abstract class AbstractTask {
         return description;
     }
 
-    public int getId() {
-        return id;
-    }
-
     public Status getStatus() {
         return status;
-    }
-
-    public void update(String name, String description, Status status) {
-        this.name = name;
-        this.description = description;
-        this.status = status;
     }
 
     @Override

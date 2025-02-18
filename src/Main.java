@@ -1,15 +1,17 @@
+import enums.Status;
 import manager.TaskManager;
+import manager.TaskValidator;
 import model.Epic;
 import model.Subtask;
 import model.Task;
-import enums.Status;
 
 import java.util.List;
 
 public class Main {
 
     public static void main(String[] args) {
-        TaskManager taskManager = new TaskManager();
+        TaskValidator taskValidator = new TaskValidator();
+        TaskManager taskManager = new TaskManager(taskValidator);
         Task firstTask = new Task("Первая задача", "Найти что за собака писала ТЗ", Status.IN_PROGRESS);
         Task secondTask = new Task("Вторая задача", "Извиниться за собаку", Status.NEW);
 
@@ -94,11 +96,14 @@ public class Main {
                 
                 поменяем таску, эпик и сабтаску
                 """);
-        Task changedTask = new Task(2, "Новая вторая таска", "Хочу больше не писать гадости",
+        Task changedTask = new Task(taskManager.getTaskById(2), "Новая вторая таска",
+                "Хочу больше не писать гадости",
                 Status.DONE);
-        Epic changedEpic = new Epic(4, "Новый второй эпик", "В нем должны лежать те же сабтаски",
-                taskManager.getEpicSubTasks(4));
-        Subtask changedSubtask = new Subtask(6, "Я новая сабтасочка", "Меняю эпик на done",
+
+        Epic changedEpic = new Epic(taskManager.getEpicById(4), "я уже забыла что тут должно быть",
+                "Новый второй эпик");
+        Subtask changedSubtask = new Subtask(taskManager.getSubtaskById(6), "Я новая сабтасочка",
+                "Меняю эпик на done",
                 Status.DONE);
 
 

@@ -4,15 +4,15 @@ import enums.Status;
 
 public class Task extends AbstractTask {
 
-    public Task(int id, String name, String description, Status status) {
-        super(id, name, description, status);
+    public Task(Task task, String name, String description, Status status) {
+        super(task.id, name, description, status);
     }
 
     public Task(String name, String description, Status status) {
         super(-1, name, description, status);
     }
 
-    public Task(int id, Task task) {
+    public Task(Task task, int id) {
         super(id, task.name, task.description, task.status);
     }
 

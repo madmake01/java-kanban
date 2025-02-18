@@ -2,36 +2,36 @@ package model;
 
 import enums.Status;
 
-import java.util.Optional;
-
 public class Subtask extends AbstractTask {
-    private Epic epic;
+    private final int epicId;
 
     public Subtask(int id, String name, String description, Status status) {
         super(id, name, description, status);
+        this.epicId = DEFAULT_ID;
     }
 
     public Subtask(String name, String description, Status status) {
-        super(-1, name, description, status);
+        this(DEFAULT_ID, name, description, status);
     }
 
-    public Subtask(int id, Subtask subtask) {
+    public Subtask(Subtask subtask, int id, int epicId) {
         super(id, subtask.name, subtask.description, subtask.status);
-        this.epic = subtask.epic;
+        this.epicId = epicId;
     }
 
-    public Optional<Epic> getEpic() {
-        return Optional.ofNullable(epic);
+    public Subtask(Subtask subtask, String name, String description, Status status) {
+        super(subtask.id, name, description, status);
+        this.epicId = subtask.epicId;
     }
 
-    public void setEpic(Epic epic) {
-        this.epic = epic;
+    public int getEpicId() {
+        return epicId;
     }
 
     @Override
     public String toString() {
         return "Subtask{" +
-                "epic=" + epic.getName() +
+                "epic=" + epicId +
                 ", id=" + id +
                 ", name='" + name + '\'' +
                 ", description='" + description + '\'' +
