@@ -1,6 +1,6 @@
 package model;
 
-import util.Status;
+import enums.Status;
 
 import java.util.Objects;
 
@@ -53,10 +53,11 @@ public abstract class AbstractTask {
         if (this == o) {
             return true;
         }
-        if (!(o instanceof AbstractTask task)) {
+        if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        return id == task.id;
+        AbstractTask obj = (AbstractTask) o;
+        return id == obj.id;
     }
 
     @Override

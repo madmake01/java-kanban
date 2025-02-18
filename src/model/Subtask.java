@@ -1,6 +1,6 @@
 package model;
 
-import util.Status;
+import enums.Status;
 
 import java.util.Optional;
 

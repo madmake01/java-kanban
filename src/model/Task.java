@@ -1,6 +1,6 @@
 package model;
 
-import util.Status;
+import enums.Status;
 
 public class Task extends AbstractTask {
 

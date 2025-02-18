@@ -2,7 +2,7 @@ package model;
 
 import exception.EntityAlreadyExistsException;
 import exception.NonexistentEntityException;
-import util.Status;
+import enums.Status;
 
 import java.util.ArrayList;
 import java.util.List;

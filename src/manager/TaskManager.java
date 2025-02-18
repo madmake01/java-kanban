@@ -4,7 +4,7 @@ import exception.NonexistentEntityException;
 import model.Epic;
 import model.Subtask;
 import model.Task;
-import util.Status;
+import enums.Status;
 
 import java.util.HashMap;
 import java.util.HashSet;
