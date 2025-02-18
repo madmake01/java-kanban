@@ -45,7 +45,8 @@ public class Main {
             System.out.println(epic);
         }
 
-        Subtask subtaskFirstEpic = new Subtask("Выполненная сабтаска", "Я должна поменять статус эпика на выполненный эпик", Status.DONE);
+        Subtask subtaskFirstEpic = new Subtask("Выполненная сабтаска",
+                "Я должна поменять статус эпика на выполненный эпик", Status.DONE);
         System.out.println("""
                 
                 Тут первый обновленный эпик:
@@ -59,10 +60,12 @@ public class Main {
                 Тут второй обновленный эпик после добавления первой сабтасочки и второй:
                 """);
 
-        Subtask subtaskSecondEpicOne = new Subtask("Просто нью сабтасочка", "Ни на что не влияю, лежу тут маленькая", Status.NEW);
+        Subtask subtaskSecondEpicOne = new Subtask("Просто нью сабтасочка",
+                "Ни на что не влияю, лежу тут маленькая", Status.NEW);
         taskManager.addSubtask(subtaskSecondEpicOne, 4);
         System.out.println(taskManager.getEpicById(4));
-        Subtask subtaskSecondEpicTwo = new Subtask("Ин прогресс сабтаска", "Своим существованием я обрекаю эпик быть инпрогресс", Status.IN_PROGRESS);
+        Subtask subtaskSecondEpicTwo = new Subtask("Ин прогресс сабтаска",
+                "Своим существованием я обрекаю эпик быть инпрогресс", Status.IN_PROGRESS);
         taskManager.addSubtask(subtaskSecondEpicTwo, 4);
         System.out.println(taskManager.getEpicById(4));
 
@@ -91,9 +94,12 @@ public class Main {
                 
                 поменяем таску, эпик и сабтаску
                 """);
-        Task changedTask = new Task(2,"Новая вторая таска", "Хочу больше не писать гадости", Status.DONE);
-        Epic changedEpic = new Epic(4, "Новый второй эпик", "В нем должны лежать те же сабтаски", taskManager.getEpicSubTasks(4));
-        Subtask changedSubtask = new Subtask(6,"Я новая сабтасочка", "Меняю эпик на done", Status.DONE);
+        Task changedTask = new Task(2, "Новая вторая таска", "Хочу больше не писать гадости",
+                Status.DONE);
+        Epic changedEpic = new Epic(4, "Новый второй эпик", "В нем должны лежать те же сабтаски",
+                taskManager.getEpicSubTasks(4));
+        Subtask changedSubtask = new Subtask(6, "Я новая сабтасочка", "Меняю эпик на done",
+                Status.DONE);
 
 
         taskManager.updateTask(changedTask);

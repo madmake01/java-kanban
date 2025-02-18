@@ -4,7 +4,6 @@ import util.Status;
 
 import java.util.Objects;
 
-//abstractTask существует чтобы не нарушать принцип Лисков (update task, например)
 public abstract class AbstractTask {
     protected final int id;
     protected String name;
@@ -49,8 +48,6 @@ public abstract class AbstractTask {
         this.status = status;
     }
 
-    //В теории не было instanceof, но как иначе переопределить если
-    // задачи с одним id должны считаться одинаковыми по тз? Три раза класс сравнивать ?:)
     @Override
     public boolean equals(Object o) {
         if (this == o) {

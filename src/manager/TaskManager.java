@@ -87,7 +87,10 @@ public class TaskManager {
         epics.put(id, newEpic);
     }
 
-    //не разрешаю обновлять сабтаски эпика через этот метод, для обновления сабтасок по ТЗ существуют отдельные методы
+    /*
+    не разрешаю обновлять сабтаски эпика через этот метод, для обновления сабтасок по ТЗ существуют отдельные методы
+    подумать нужно ли кастомный эксепшн сделать. В теории его же можно переиспользовать и в конструкторе
+    */
     public void updateEpic(Epic epic) {
         Epic epicToUpdate = epics.get(epic.getId());
 
@@ -150,6 +153,7 @@ public class TaskManager {
         subtasks.put(id, newSubtask);
     }
 
+    //подумать нужно ли сравнить эпики у updated и subtask
     public void updateSubtask(Subtask subtask) {
         Subtask updatedSubtask = subtasks.get(subtask.getId());
 
