@@ -15,6 +15,7 @@ import static exception.TaskExceptionMessage.EPIC_DOES_NOT_EXIST;
 import static exception.TaskExceptionMessage.SUBTASK_DOES_NOT_EXIST;
 import static exception.TaskExceptionMessage.TASK_DOES_NOT_EXIST;
 
+//Я все переделала. Надеюсь, что хуже не стало :'(
 public class TaskManager {
     private final TaskValidator validator;
     private final Map<Integer, Task> tasks;
@@ -54,6 +55,7 @@ public class TaskManager {
         subtasks.clear();
         for (Epic epic : epics.values()) {
             epic.removeAllSubtasks();
+            updateEpic(epic);
         }
     }
 
@@ -69,11 +71,15 @@ public class TaskManager {
         return getEntityById(subtasks, id, SUBTASK_DOES_NOT_EXIST);
     }
 
+    /*
+    Первые 4 шага одинаковые, можно какой-нибудь умный Map сделать с consumer
+    */
     public void addTask(Task task) {
         validator.validateNewTask(task);
 
         int taskId = generateId();
         Task newTask = new Task(task, taskId);
+
         tasks.put(taskId, newTask);
     }
 
@@ -82,6 +88,7 @@ public class TaskManager {
 
         int epicId = generateId();
         Epic newEpic = new Epic(epic, epicId);
+
         epics.put(epicId, newEpic);
     }
 
@@ -89,11 +96,13 @@ public class TaskManager {
         validator.validateNewSubTask(subtask);
 
         int subtaskId = generateId();
-        Epic epic = getEpicById(epicId);
         Subtask newSubtask = new Subtask(subtask, subtaskId, epicId);
 
-        epic.addSubtask(subtaskId);
         subtasks.put(subtaskId, newSubtask);
+
+        Epic epic = getEpicById(epicId);
+        epic.addSubtask(subtaskId);
+
         updateEpic(epic);
     }
 
@@ -108,16 +117,19 @@ public class TaskManager {
     }
 
     /*
-    Очень хочется переопределить equals в Epic и Subtask, чтобы избавиться от лишних методов validator, которые по сути
-    equals
-    Или сделать аля-DTO для передачи обновлений, который в принципе может содержать только id + имя + описание + статус
+    Сделать аля-DTO для передачи обновлений, который в принципе может содержать только id + имя + описание + статус
+    Заодно получится избавиться от кучи ненужных конструкторов в model
     */
 
     public void updateEpic(Epic epic) {
         int epicId = epic.getId();
-        Epic oldEpic = getEpicById(epicId);
+        getEpicById(epicId);
 
-        validator.ensureEpicSubtasksAreEqual(oldEpic, epic);
+        /*
+        validator.ensureEpicSubtasksAreEqual(oldEpic, epic)
+        все равно не спасет, ведь в get я
+        возвращаю ссылки и там меняют, что хотят. Подумать об альтернативах
+        */
 
         Status newStatus = calculateEpicStatus(epic);
         epics.put(epicId, new Epic(epic, newStatus));
@@ -125,10 +137,12 @@ public class TaskManager {
 
     public void updateSubtask(Subtask subtask) {
         int subtaskId = subtask.getId();
-        Subtask updatedSubtask = getSubtaskById(subtaskId);
+        getSubtaskById(subtaskId);
 
+        /*
         validator.ensureSubtasksEpicsAreEqual(updatedSubtask, subtask);
-
+        В принципе аналогично предыдущему пункту
+        */
         int subtaskEpicId = subtask.getEpicId();
         Epic epic = getEpicById(subtaskEpicId);
 
@@ -172,20 +186,18 @@ public class TaskManager {
 
     private Status calculateEpicStatus(Epic epic) {
         List<Integer> subTaskList = epic.getSubTaskIdList();
-        boolean hasNew = false;
+        List<Status> uniqueStatuses = subTaskList.stream().map(this::getSubtaskById).map(Subtask::getStatus)
+                .distinct().toList();
 
-        for (Integer subtaskId : subTaskList) {
-            Subtask subtask = getSubtaskById(subtaskId);
-            Status subtaskStatus = subtask.getStatus();
-
-            if (subtaskStatus == Status.IN_PROGRESS) {
-                return Status.IN_PROGRESS;
-            }
-            if (subtaskStatus == Status.NEW) {
-                hasNew = true;
-            }
+        if (uniqueStatuses.size() > 1 || uniqueStatuses.contains(Status.IN_PROGRESS)) {
+            return Status.IN_PROGRESS;
         }
-        return hasNew ? Status.NEW : Status.DONE;
+
+        if (uniqueStatuses.contains(Status.DONE)) {
+            return Status.DONE;
+        }
+
+        return Status.NEW;
     }
 
     private <T extends AbstractTask> T getEntityById(Map<Integer, T> storage, int id, String errorMessage) {
