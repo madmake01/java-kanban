@@ -1,4 +1,6 @@
 import enums.Status;
+import exception.EntityAlreadyExistsException;
+import exception.NonexistentEntityException;
 import manager.TaskManager;
 import manager.TaskValidator;
 import model.Epic;
@@ -10,6 +12,66 @@ import java.util.List;
 public class Main {
 
     public static void main(String[] args) {
+        testPracticumFull();
+    }
+
+    private static void testEpic() {
+        TaskManager manager = new TaskManager(new TaskValidator());
+        Epic epic = new Epic("Я эпик", "Очень эпичный");
+        manager.addEpic(epic);
+        updateEpic(manager, manager.getEpicById(1));
+    }
+    private static void updateEpic(TaskManager manager, Epic epic) {
+        Epic notEpicEpic = new Epic(epic, "Но не очень эпичный", "Тот же эпик");
+        try {
+            manager.addEpic(notEpicEpic);
+            throw new RuntimeException("epic already exists");
+        } catch (EntityAlreadyExistsException e) {
+            System.out.println("expected exception was thrown");
+        }
+
+        manager.updateEpic(notEpicEpic);
+        Epic updatedEpic = manager.getEpicById(1);
+        System.out.println(updatedEpic == notEpicEpic); //should be false
+    }
+
+    private static void addEpicSubtask() {
+        TaskManager manager = new TaskManager(new TaskValidator());
+        Epic epic = new Epic("Я эпик", "Очень эпичный");
+        manager.addEpic(epic);
+    }
+
+    private static void testEmptyGetAll() {
+        TaskManager manager = new TaskManager(new TaskValidator());
+        checkList(manager.getTasks(), true);
+        checkList(manager.getSubtasks(), true);
+        checkList(manager.getEpics(), true);
+    }
+
+    private static void testGetThrowsException() {
+        TaskManager manager = new TaskManager(new TaskValidator());
+        try {
+            Task task = manager.getTaskById(144);
+
+            throw new RuntimeException("Task was found");
+        } catch (NonexistentEntityException e) {
+            System.out.println("expected exception was thrown");
+        }
+    }
+
+    private static <T> void checkList(List<T> list, boolean isEmpty) {
+        if (isEmpty) {
+            if (!list.isEmpty()) {
+                throw new RuntimeException("List should be empty" + list);
+            }
+        } else {
+            if (list.isEmpty()) {
+                throw new RuntimeException("List should not be empty" + list);
+            }
+        }
+    }
+
+    private static void testPracticumFull() {
         TaskValidator taskValidator = new TaskValidator();
         TaskManager taskManager = new TaskManager(taskValidator);
         Task firstTask = new Task("Первая задача", "Найти что за собака писала ТЗ", Status.IN_PROGRESS);
@@ -54,6 +116,8 @@ public class Main {
                 Тут первый обновленный эпик:
                 """);
         taskManager.addSubtask(subtaskFirstEpic, 3);
+        List<Subtask> subtasks = taskManager.getSubtasks();
+        System.out.println(subtasks);
         Epic doneEpic = taskManager.getEpicById(3);
         System.out.println(doneEpic);
 
@@ -70,7 +134,6 @@ public class Main {
                 "Своим существованием я обрекаю эпик быть инпрогресс", Status.IN_PROGRESS);
         taskManager.addSubtask(subtaskSecondEpicTwo, 4);
         System.out.println(taskManager.getEpicById(4));
-
         System.out.println("""
                 
                 Тут смотрим все вместе
@@ -100,8 +163,8 @@ public class Main {
                 "Хочу больше не писать гадости",
                 Status.DONE);
 
-        Epic changedEpic = new Epic(taskManager.getEpicById(4), "я уже забыла что тут должно быть",
-                "Новый второй эпик");
+        Epic changedEpic = new Epic(taskManager.getEpicById(4), "Новый второй эпик", "я уже забыла что тут должно быть"
+        );
         Subtask changedSubtask = new Subtask(taskManager.getSubtaskById(6), "Я новая сабтасочка",
                 "Меняю эпик на done",
                 Status.DONE);

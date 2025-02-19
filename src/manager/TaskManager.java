@@ -106,6 +106,7 @@ public class TaskManager {
         updateEpic(epic);
     }
 
+    //выбивается из стиля, по идее можно сделать также, как и другие update, пусть и получится менее оптимально
     public void updateTask(Task task) {
         int id = task.getId();
         tasks.compute(id, (k, v) -> {
