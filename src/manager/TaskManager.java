@@ -159,7 +159,7 @@ public class TaskManager {
     public void deleteEpic(int id) {
         Epic removedEpic = removeEntityById(epics, id, EPIC_DOES_NOT_EXIST);
 
-        List<Integer> subtasksIdToRemove = removedEpic.getSubTaskIdList();
+        List<Integer> subtasksIdToRemove = removedEpic.getSubTaskIds();
 
         for (Integer subtaskId : subtasksIdToRemove) {
             removeEntityById(subtasks, subtaskId, SUBTASK_DOES_NOT_EXIST);
@@ -178,7 +178,7 @@ public class TaskManager {
 
     public List<Subtask> getEpicSubTasks(int id) {
         Epic epic = getEpicById(id);
-        return epic.getSubTaskIdList().stream().map(this::getSubtaskById).toList();
+        return epic.getSubTaskIds().stream().map(this::getSubtaskById).toList();
     }
 
     private int generateId() {
@@ -186,8 +186,8 @@ public class TaskManager {
     }
 
     private Status calculateEpicStatus(Epic epic) {
-        List<Integer> subTaskList = epic.getSubTaskIdList();
-        List<Status> uniqueStatuses = subTaskList.stream().map(this::getSubtaskById).map(Subtask::getStatus)
+        List<Integer> subTaskIds = epic.getSubTaskIds();
+        List<Status> uniqueStatuses = subTaskIds.stream().map(this::getSubtaskById).map(Subtask::getStatus)
                 .distinct().toList();
 
         if (uniqueStatuses.size() > 1 || uniqueStatuses.contains(Status.IN_PROGRESS)) {

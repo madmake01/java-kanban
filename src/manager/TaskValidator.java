@@ -28,14 +28,14 @@ public class TaskValidator {
     public void validateNewEpic(Epic epic) {
         validateId(epic.getId());
 
-        if (!epic.getSubTaskIdList().isEmpty()) {
+        if (!epic.getSubTaskIds().isEmpty()) {
             throw new EntityAlreadyExistsException(NEW_EPIC_SHOULD_BE_EMPTY);
         }
     }
 
     public void ensureEpicSubtasksAreEqual(Epic oldEpic, Epic newEpic) {
-        List<Integer> oldSubtaskList = oldEpic.getSubTaskIdList();
-        List<Integer> newSubtaskList = newEpic.getSubTaskIdList();
+        List<Integer> oldSubtaskList = oldEpic.getSubTaskIds();
+        List<Integer> newSubtaskList = newEpic.getSubTaskIds();
 
         boolean isEqualSize = oldSubtaskList.size() == newSubtaskList.size();
         if (!isEqualSize) {

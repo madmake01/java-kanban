@@ -6,46 +6,46 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Epic extends AbstractTask {
-    private final List<Integer> subTaskIdList;
-
+    private final List<Integer> subTaskIds;
+    private static final Status DEFAULT_STATUS = Status.NEW;
     //создание нового экземпляра у пользователя
     public Epic(String name, String description) {
-        super(DEFAULT_ID, name, description, Status.NEW);
-        subTaskIdList = new ArrayList<>();
+        super(DEFAULT_ID, name, description, DEFAULT_STATUS);
+        subTaskIds = new ArrayList<>();
     }
 
     //обновление у пользователя
     public Epic(Epic epic, String name, String description) {
         super(epic.id, name, description, epic.status);
-        this.subTaskIdList = epic.getSubTaskIdList();
+        this.subTaskIds = epic.getSubTaskIds();
     }
 
     //для метода addNew менеджера
     public Epic(Epic epic, int id) {
         super(id, epic.name, epic.description, epic.status);
-        this.subTaskIdList = epic.getSubTaskIdList();
+        this.subTaskIds = epic.getSubTaskIds();
     }
 
     //для метода update менеджера
     public Epic(Epic epic, Status status) {
         super(epic.id, epic.name, epic.description, status);
-        this.subTaskIdList = epic.getSubTaskIdList();
+        this.subTaskIds = epic.getSubTaskIds();
     }
 
-    public List<Integer> getSubTaskIdList() {
-        return new ArrayList<>(subTaskIdList);
+    public List<Integer> getSubTaskIds() {
+        return new ArrayList<>(subTaskIds);
     }
 
     public void addSubtask(int subtaskId) {
-        subTaskIdList.add(subtaskId);
+        subTaskIds.add(subtaskId);
     }
 
     public void removeSubtask(Integer subtaskId) {
-        subTaskIdList.remove(subtaskId);
+        subTaskIds.remove(subtaskId);
     }
 
     public void removeAllSubtasks() {
-        subTaskIdList.clear();
+        subTaskIds.clear();
     }
 
     @Override
@@ -55,7 +55,7 @@ public class Epic extends AbstractTask {
                 ", name='" + name + '\'' +
                 ", description='" + description + '\'' +
                 ", status=" + status +
-                ", subTaskList=" + subTaskIdList +
+                ", subtaskIds=" + subTaskIds +
                 '}';
     }
 }
