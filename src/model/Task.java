@@ -11,21 +11,21 @@ public class Task extends AbstractTask {
 
     //Обновление у пользователя
     public Task(Task task, String name, String description, Status status) {
-        super(task.id, name, description, status);
+        super(task.getId(), name, description, status);
     }
 
     //для метода addNew и update менеджера
     public Task(Task task, int id) {
-        super(id, task.name, task.description, task.status);
+        super(id, task.getName(), task.getDescription(), task.getStatus());
     }
 
     @Override
     public String toString() {
         return "Task{" +
-                "id=" + id +
-                ", name='" + name + '\'' +
-                ", description='" + description + '\'' +
-                ", status=" + status +
+                "id=" + getId() +
+                ", name='" + getName() + '\'' +
+                ", description='" + getDescription() + '\'' +
+                ", status=" + getStatus() +
                 '}';
     }
 }

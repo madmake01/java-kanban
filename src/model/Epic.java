@@ -6,8 +6,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Epic extends AbstractTask {
-    private final List<Integer> subTaskIds;
     private static final Status DEFAULT_STATUS = Status.NEW;
+    private final List<Integer> subTaskIds;
+
     //создание нового экземпляра у пользователя
     public Epic(String name, String description) {
         super(DEFAULT_ID, name, description, DEFAULT_STATUS);
@@ -16,19 +17,19 @@ public class Epic extends AbstractTask {
 
     //обновление у пользователя
     public Epic(Epic epic, String name, String description) {
-        super(epic.id, name, description, epic.status);
+        super(epic.getId(), name, description, epic.getStatus());
         this.subTaskIds = epic.getSubTaskIds();
     }
 
     //для метода addNew менеджера
     public Epic(Epic epic, int id) {
-        super(id, epic.name, epic.description, epic.status);
+        super(id, epic.getName(), epic.getDescription(), epic.getStatus());
         this.subTaskIds = epic.getSubTaskIds();
     }
 
     //для метода update менеджера
     public Epic(Epic epic, Status status) {
-        super(epic.id, epic.name, epic.description, status);
+        super(epic.getId(), epic.getName(), epic.getDescription(), status);
         this.subTaskIds = epic.getSubTaskIds();
     }
 
@@ -51,10 +52,10 @@ public class Epic extends AbstractTask {
     @Override
     public String toString() {
         return "Epic{" +
-                "id=" + id +
-                ", name='" + name + '\'' +
-                ", description='" + description + '\'' +
-                ", status=" + status +
+                "id=" + getId() +
+                ", name='" + getName() + '\'' +
+                ", description='" + getDescription() + '\'' +
+                ", status=" + getStatus() +
                 ", subtaskIds=" + subTaskIds +
                 '}';
     }

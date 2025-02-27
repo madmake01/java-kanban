@@ -6,10 +6,10 @@ import java.util.Objects;
 
 public abstract class AbstractTask {
     public static final int DEFAULT_ID = -1;
-    protected final int id;
-    protected final String name;
-    protected final String description;
-    protected final Status status;
+    private final int id;
+    private final String name;
+    private final String description;
+    private final Status status;
 
     protected AbstractTask(int id, String name, String description, Status status) {
         if (name == null || name.isBlank()) {

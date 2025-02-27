@@ -13,13 +13,13 @@ public class Subtask extends AbstractTask {
 
     //обновление у пользователя
     public Subtask(Subtask subtask, String name, String description, Status status) {
-        super(subtask.id, name, description, status);
+        super(subtask.getId(), name, description, status);
         this.epicId = subtask.epicId;
     }
 
     //для метода addNew и update менеджера
     public Subtask(Subtask subtask, int id, int epicId) {
-        super(id, subtask.name, subtask.description, subtask.status);
+        super(id, subtask.getName(), subtask.getDescription(), subtask.getStatus());
         this.epicId = epicId;
     }
 
@@ -30,10 +30,10 @@ public class Subtask extends AbstractTask {
     @Override
     public String toString() {
         return "Subtask{" +
-                "id=" + id +
-                ", name='" + name + '\'' +
-                ", description='" + description + '\'' +
-                ", status=" + status +
+                "id=" + getId() +
+                ", name='" + getName() + '\'' +
+                ", description='" + getDescription() + '\'' +
+                ", status=" + getStatus() +
                 ", epic=" + epicId +
                 '}';
     }
