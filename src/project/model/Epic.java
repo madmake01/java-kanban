@@ -1,36 +1,16 @@
 package project.model;
 
-import project.enums.Status;
+import project.util.AbstractTaskBuilder;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class Epic extends AbstractTask {
-    private static final Status DEFAULT_STATUS = Status.NEW;
     private final List<Integer> subTaskIds;
 
-    //создание нового экземпляра у пользователя
-    public Epic(String name, String description) {
-        super(DEFAULT_ID, name, description, DEFAULT_STATUS);
-        subTaskIds = new ArrayList<>();
-    }
-
-    //обновление у пользователя
-    public Epic(Epic epic, String name, String description) {
-        super(epic.getId(), name, description, epic.getStatus());
-        this.subTaskIds = epic.getSubTaskIds();
-    }
-
-    //для метода addNew менеджера
-    public Epic(Epic epic, int id) {
-        super(id, epic.getName(), epic.getDescription(), epic.getStatus());
-        this.subTaskIds = epic.getSubTaskIds();
-    }
-
-    //для метода update менеджера
-    public Epic(Epic epic, Status status) {
-        super(epic.getId(), epic.getName(), epic.getDescription(), status);
-        this.subTaskIds = epic.getSubTaskIds();
+    private Epic(Builder builder) {
+        super(builder);
+        this.subTaskIds = builder.subTaskIds;
     }
 
     public List<Integer> getSubTaskIds() {
@@ -58,5 +38,31 @@ public class Epic extends AbstractTask {
                 ", status=" + getStatus() +
                 ", subtaskIds=" + subTaskIds +
                 '}';
+    }
+
+    public static class Builder extends AbstractTaskBuilder<Epic, Builder> {
+        private List<Integer> subTaskIds = new ArrayList<>();
+
+        public Builder setSubTaskIds(List<Integer> subTaskIds) {
+            this.subTaskIds = subTaskIds;
+            return this;
+        }
+
+        public Builder fromEpic(Epic epic) {
+            copyFromAbstractTask(epic);
+            this.subTaskIds = epic.getSubTaskIds();
+
+            return this;
+        }
+
+        public Epic build() {
+            validate();
+            return new Epic(this);
+        }
+
+        @Override
+        protected Builder self() {
+            return this;
+        }
     }
 }

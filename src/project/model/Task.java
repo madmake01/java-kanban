@@ -1,22 +1,11 @@
 package project.model;
 
-import project.enums.Status;
+import project.util.AbstractTaskBuilder;
 
 public class Task extends AbstractTask {
 
-    //Создание у пользователя
-    public Task(String name, String description, Status status) {
-        super(DEFAULT_ID, name, description, status);
-    }
-
-    //Обновление у пользователя
-    public Task(Task task, String name, String description, Status status) {
-        super(task.getId(), name, description, status);
-    }
-
-    //для метода addNew и update менеджера
-    public Task(Task task, int id) {
-        super(id, task.getName(), task.getDescription(), task.getStatus());
+    private Task(AbstractTaskBuilder builder) {
+        super(builder);
     }
 
     @Override
@@ -27,5 +16,23 @@ public class Task extends AbstractTask {
                 ", description='" + getDescription() + '\'' +
                 ", status=" + getStatus() +
                 '}';
+    }
+
+    public static class Builder extends AbstractTaskBuilder<Task, Builder> {
+
+        public Builder fromTask(Task task) {
+            copyFromAbstractTask(task);
+            return this;
+        }
+
+        @Override
+        public Task build() {
+            return new Task(this);
+        }
+
+        @Override
+        protected Builder self() {
+            return this;
+        }
     }
 }

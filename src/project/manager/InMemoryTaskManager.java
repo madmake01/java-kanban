@@ -91,7 +91,10 @@ public class InMemoryTaskManager implements TaskManager {
         validator.validateNewTask(task);
 
         int taskId = generateId();
-        Task newTask = new Task(task, taskId);
+        Task newTask = new Task.Builder()
+                .fromTask(task)
+                .setId(taskId)
+                .build();
 
         tasks.put(taskId, newTask);
     }
@@ -101,8 +104,10 @@ public class InMemoryTaskManager implements TaskManager {
         validator.validateNewEpic(epic);
 
         int epicId = generateId();
-        Epic newEpic = new Epic(epic, epicId);
-
+        Epic newEpic = new Epic.Builder()
+                .fromEpic(epic)
+                .setId(epicId)
+                .build();
         epics.put(epicId, newEpic);
     }
 
@@ -111,8 +116,14 @@ public class InMemoryTaskManager implements TaskManager {
         validator.validateNewSubTask(subtask);
 
         int subtaskId = generateId();
-        Subtask newSubtask = new Subtask(subtask, subtaskId, epicId);
 
+        Subtask newSubtask = new Subtask.Builder()
+                .fromSubtask(subtask)
+                .setId(subtaskId)
+                .setEpicId(epicId)
+                .build();
+
+        Epic epic = getEpicByIdInternal(epicId);
         subtasks.put(subtaskId, newSubtask);
 
         Epic epic = getEpicById(epicId);
@@ -129,7 +140,9 @@ public class InMemoryTaskManager implements TaskManager {
             if (v == null) {
                 throw new NonexistentEntityException(TASK_DOES_NOT_EXIST + id);
             }
-            return new Task(task, id);
+            return new Task.Builder()
+                    .fromTask(task)
+                    .build();
         });
     }
 
@@ -144,7 +157,11 @@ public class InMemoryTaskManager implements TaskManager {
         getEpicById(epicId);
 
         Status newStatus = calculateEpicStatus(epicId);
-        epics.put(epicId, new Epic(epic, newStatus));
+        Epic updatedEpic = new Epic.Builder()
+                .fromEpic(epic)
+                .setStatus(newStatus)
+                .build();
+        epics.put(epicId, updatedEpic);
     }
 
     @Override
@@ -155,7 +172,11 @@ public class InMemoryTaskManager implements TaskManager {
         int subtaskEpicId = subtask.getEpicId();
         Epic epic = getEpicById(subtaskEpicId);
 
-        subtasks.put(subtaskId, new Subtask(subtask, subtaskId, subtaskEpicId));
+        Subtask updatedSubtask = new Subtask.Builder()
+                .fromSubtask(subtask)
+                .build();
+
+        subtasks.put(subtaskId, updatedSubtask);
         updateEpic(epic);
     }
 
