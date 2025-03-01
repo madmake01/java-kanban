@@ -1,4 +1,4 @@
-package manager;
+package util;
 
 import exception.EntityAlreadyExistsException;
 import model.Epic;
