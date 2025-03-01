@@ -1,6 +1,6 @@
-package model;
+package project.model;
 
-import enums.Status;
+import project.enums.Status;
 
 import java.util.ArrayList;
 import java.util.List;

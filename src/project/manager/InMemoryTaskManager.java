@@ -1,20 +1,20 @@
-package manager;
+package project.manager;
 
-import enums.Status;
-import exception.NonexistentEntityException;
-import model.AbstractTask;
-import model.Epic;
-import model.Subtask;
-import model.Task;
-import util.TaskValidator;
+import project.enums.Status;
+import project.exception.NonexistentEntityException;
+import project.model.AbstractTask;
+import project.model.Epic;
+import project.model.Subtask;
+import project.model.Task;
+import project.util.TaskValidator;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static exception.TaskExceptionMessage.EPIC_DOES_NOT_EXIST;
-import static exception.TaskExceptionMessage.SUBTASK_DOES_NOT_EXIST;
-import static exception.TaskExceptionMessage.TASK_DOES_NOT_EXIST;
+import static project.exception.TaskExceptionMessage.EPIC_DOES_NOT_EXIST;
+import static project.exception.TaskExceptionMessage.SUBTASK_DOES_NOT_EXIST;
+import static project.exception.TaskExceptionMessage.TASK_DOES_NOT_EXIST;
 
 public class InMemoryTaskManager implements TaskManager {
     private final TaskValidator validator;

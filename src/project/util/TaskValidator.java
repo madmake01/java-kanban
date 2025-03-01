@@ -1,18 +1,18 @@
-package util;
+package project.util;
 
-import exception.EntityAlreadyExistsException;
-import model.Epic;
-import model.Subtask;
-import model.Task;
+import project.exception.EntityAlreadyExistsException;
+import project.model.Epic;
+import project.model.Subtask;
+import project.model.Task;
 
 import java.util.HashSet;
 import java.util.List;
 
-import static exception.TaskExceptionMessage.EPICS_SUBTASKS_SHOULD_BE_EQUAL;
-import static exception.TaskExceptionMessage.ID_SHOULD_BE_DEFAULT;
-import static exception.TaskExceptionMessage.NEW_EPIC_SHOULD_BE_EMPTY;
-import static exception.TaskExceptionMessage.SUBTASK_SHOULD_HAVE_EQUAL_EPICS;
-import static model.AbstractTask.DEFAULT_ID;
+import static project.exception.TaskExceptionMessage.EPICS_SUBTASKS_SHOULD_BE_EQUAL;
+import static project.exception.TaskExceptionMessage.ID_SHOULD_BE_DEFAULT;
+import static project.exception.TaskExceptionMessage.NEW_EPIC_SHOULD_BE_EMPTY;
+import static project.exception.TaskExceptionMessage.SUBTASK_SHOULD_HAVE_EQUAL_EPICS;
+import static project.model.AbstractTask.DEFAULT_ID;
 
 public class TaskValidator {
 

@@ -1,11 +1,14 @@
-import enums.Status;
-import exception.EntityAlreadyExistsException;
-import exception.NonexistentEntityException;
-import manager.InMemoryTaskManager;
-import manager.TaskValidator;
-import model.Epic;
-import model.Subtask;
-import model.Task;
+package project;
+
+import project.enums.Status;
+import project.exception.EntityAlreadyExistsException;
+import project.exception.NonexistentEntityException;
+import project.manager.TaskManager;
+import project.model.Epic;
+import project.model.Subtask;
+import project.model.Task;
+import project.util.Managers;
+import project.util.TaskValidator;
 
 import java.util.List;
 
@@ -16,12 +19,13 @@ public class Main {
     }
 
     private static void testEpic() {
-        InMemoryTaskManager manager = new InMemoryTaskManager(new TaskValidator());
+        TaskManager manager = Managers.getInstance().getDefaultTaskManager();
         Epic epic = new Epic("Я эпик", "Очень эпичный");
         manager.addEpic(epic);
         updateEpic(manager, manager.getEpicById(1));
     }
-    private static void updateEpic(InMemoryTaskManager manager, Epic epic) {
+
+    private static void updateEpic(TaskManager manager, Epic epic) {
         Epic notEpicEpic = new Epic(epic, "Но не очень эпичный", "Тот же эпик");
         try {
             manager.addEpic(notEpicEpic);
@@ -36,20 +40,20 @@ public class Main {
     }
 
     private static void addEpicSubtask() {
-        InMemoryTaskManager manager = new InMemoryTaskManager(new TaskValidator());
+        TaskManager manager = Managers.getInstance().getDefaultTaskManager();
         Epic epic = new Epic("Я эпик", "Очень эпичный");
         manager.addEpic(epic);
     }
 
     private static void testEmptyGetAll() {
-        InMemoryTaskManager manager = new InMemoryTaskManager(new TaskValidator());
+        TaskManager manager = Managers.getInstance().getDefaultTaskManager();
         checkList(manager.getTasks(), true);
         checkList(manager.getSubtasks(), true);
         checkList(manager.getEpics(), true);
     }
 
     private static void testGetThrowsException() {
-        InMemoryTaskManager manager = new InMemoryTaskManager(new TaskValidator());
+        TaskManager manager = Managers.getInstance().getDefaultTaskManager();
         try {
             Task task = manager.getTaskById(144);
 
@@ -73,7 +77,7 @@ public class Main {
 
     private static void testPracticumFull() {
         TaskValidator taskValidator = new TaskValidator();
-        InMemoryTaskManager inMemoryTaskManager = new InMemoryTaskManager(taskValidator);
+        TaskManager inMemoryTaskManager = Managers.getInstance().getDefaultTaskManager();
         Task firstTask = new Task("Первая задача", "Найти что за собака писала ТЗ", Status.IN_PROGRESS);
         Task secondTask = new Task("Вторая задача", "Извиниться за собаку", Status.NEW);
 

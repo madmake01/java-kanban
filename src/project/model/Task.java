@@ -1,6 +1,6 @@
-package model;
+package project.model;
 
-import enums.Status;
+import project.enums.Status;
 
 public class Task extends AbstractTask {
 

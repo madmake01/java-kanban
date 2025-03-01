@@ -1,4 +1,4 @@
-package enums;
+package project.enums;
 
 public enum Status {
     NEW,

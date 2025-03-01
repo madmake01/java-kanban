@@ -1,4 +1,4 @@
-package exception;
+package project.exception;
 
 public class TaskExceptionMessage {
     public static final String ID_SHOULD_BE_DEFAULT = "Task does not have a default id: ";
