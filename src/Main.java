@@ -1,7 +1,7 @@
 import enums.Status;
 import exception.EntityAlreadyExistsException;
 import exception.NonexistentEntityException;
-import manager.TaskManager;
+import manager.InMemoryTaskManager;
 import manager.TaskValidator;
 import model.Epic;
 import model.Subtask;
@@ -16,12 +16,12 @@ public class Main {
     }
 
     private static void testEpic() {
-        TaskManager manager = new TaskManager(new TaskValidator());
+        InMemoryTaskManager manager = new InMemoryTaskManager(new TaskValidator());
         Epic epic = new Epic("Я эпик", "Очень эпичный");
         manager.addEpic(epic);
         updateEpic(manager, manager.getEpicById(1));
     }
-    private static void updateEpic(TaskManager manager, Epic epic) {
+    private static void updateEpic(InMemoryTaskManager manager, Epic epic) {
         Epic notEpicEpic = new Epic(epic, "Но не очень эпичный", "Тот же эпик");
         try {
             manager.addEpic(notEpicEpic);
@@ -36,20 +36,20 @@ public class Main {
     }
 
     private static void addEpicSubtask() {
-        TaskManager manager = new TaskManager(new TaskValidator());
+        InMemoryTaskManager manager = new InMemoryTaskManager(new TaskValidator());
         Epic epic = new Epic("Я эпик", "Очень эпичный");
         manager.addEpic(epic);
     }
 
     private static void testEmptyGetAll() {
-        TaskManager manager = new TaskManager(new TaskValidator());
+        InMemoryTaskManager manager = new InMemoryTaskManager(new TaskValidator());
         checkList(manager.getTasks(), true);
         checkList(manager.getSubtasks(), true);
         checkList(manager.getEpics(), true);
     }
 
     private static void testGetThrowsException() {
-        TaskManager manager = new TaskManager(new TaskValidator());
+        InMemoryTaskManager manager = new InMemoryTaskManager(new TaskValidator());
         try {
             Task task = manager.getTaskById(144);
 
@@ -73,14 +73,14 @@ public class Main {
 
     private static void testPracticumFull() {
         TaskValidator taskValidator = new TaskValidator();
-        TaskManager taskManager = new TaskManager(taskValidator);
+        InMemoryTaskManager inMemoryTaskManager = new InMemoryTaskManager(taskValidator);
         Task firstTask = new Task("Первая задача", "Найти что за собака писала ТЗ", Status.IN_PROGRESS);
         Task secondTask = new Task("Вторая задача", "Извиниться за собаку", Status.NEW);
 
-        taskManager.addTask(firstTask);
-        taskManager.addTask(secondTask);
+        inMemoryTaskManager.addTask(firstTask);
+        inMemoryTaskManager.addTask(secondTask);
 
-        List<Task> tasks = taskManager.getTasks();
+        List<Task> tasks = inMemoryTaskManager.getTasks();
         System.out.println("Тут должно быть две таски");
         for (Task task : tasks) {
             System.out.println(task);
@@ -88,22 +88,22 @@ public class Main {
 
 
         System.out.println("\nТут должна остаться только вторая таска");
-        taskManager.deleteTask(1);
-        tasks = taskManager.getTasks();
+        inMemoryTaskManager.deleteTask(1);
+        tasks = inMemoryTaskManager.getTasks();
         for (Task task : tasks) {
             System.out.println(task);
         }
 
         Epic oneSubtaskEpic = new Epic("Первый эпик", "Это очень маленький эпик");
         Epic twoSubtaskEpic = new Epic("Второй эпик", "Он чуть побольше");
-        taskManager.addEpic(oneSubtaskEpic);
-        taskManager.addEpic(twoSubtaskEpic);
+        inMemoryTaskManager.addEpic(oneSubtaskEpic);
+        inMemoryTaskManager.addEpic(twoSubtaskEpic);
 
         System.out.println("""
                 
                 Тут пустые эпики:
                 """);
-        List<Epic> epics = taskManager.getEpics();
+        List<Epic> epics = inMemoryTaskManager.getEpics();
 
         for (Epic epic : epics) {
             System.out.println(epic);
@@ -115,10 +115,10 @@ public class Main {
                 
                 Тут первый обновленный эпик:
                 """);
-        taskManager.addSubtask(subtaskFirstEpic, 3);
-        List<Subtask> subtasks = taskManager.getSubtasks();
+        inMemoryTaskManager.addSubtask(subtaskFirstEpic, 3);
+        List<Subtask> subtasks = inMemoryTaskManager.getSubtasks();
         System.out.println(subtasks);
-        Epic doneEpic = taskManager.getEpicById(3);
+        Epic doneEpic = inMemoryTaskManager.getEpicById(3);
         System.out.println(doneEpic);
 
         System.out.println("""
@@ -128,55 +128,55 @@ public class Main {
 
         Subtask subtaskSecondEpicOne = new Subtask("Просто нью сабтасочка",
                 "Ни на что не влияю, лежу тут маленькая", Status.NEW);
-        taskManager.addSubtask(subtaskSecondEpicOne, 4);
-        System.out.println(taskManager.getEpicById(4));
+        inMemoryTaskManager.addSubtask(subtaskSecondEpicOne, 4);
+        System.out.println(inMemoryTaskManager.getEpicById(4));
         Subtask subtaskSecondEpicTwo = new Subtask("Ин прогресс сабтаска",
                 "Своим существованием я обрекаю эпик быть инпрогресс", Status.IN_PROGRESS);
-        taskManager.addSubtask(subtaskSecondEpicTwo, 4);
-        System.out.println(taskManager.getEpicById(4));
+        inMemoryTaskManager.addSubtask(subtaskSecondEpicTwo, 4);
+        System.out.println(inMemoryTaskManager.getEpicById(4));
         System.out.println("""
                 
                 Тут смотрим все вместе
                 Должно быть 2 эпика и 3 сабтасочки
                 """);
 
-        System.out.println(taskManager.getEpics());
-        System.out.println(taskManager.getSubtasks());
+        System.out.println(inMemoryTaskManager.getEpics());
+        System.out.println(inMemoryTaskManager.getSubtasks());
 
         System.out.println("""
                 
                 Тут удалим маленький эпик и сабтасочку из второго эпика и посмотрим что поменялось.
                 """);
 
-        taskManager.deleteEpic(3);
-        taskManager.deleteSubtask(7);
+        inMemoryTaskManager.deleteEpic(3);
+        inMemoryTaskManager.deleteSubtask(7);
 
-        System.out.println(taskManager.getEpics());
-        System.out.println(taskManager.getSubtasks());
+        System.out.println(inMemoryTaskManager.getEpics());
+        System.out.println(inMemoryTaskManager.getSubtasks());
 
 
         System.out.println("""
                 
                 поменяем таску, эпик и сабтаску
                 """);
-        Task changedTask = new Task(taskManager.getTaskById(2), "Новая вторая таска",
+        Task changedTask = new Task(inMemoryTaskManager.getTaskById(2), "Новая вторая таска",
                 "Хочу больше не писать гадости",
                 Status.DONE);
 
-        Epic changedEpic = new Epic(taskManager.getEpicById(4), "Новый второй эпик", "я уже забыла что тут должно быть"
+        Epic changedEpic = new Epic(inMemoryTaskManager.getEpicById(4), "Новый второй эпик", "я уже забыла что тут должно быть"
         );
-        Subtask changedSubtask = new Subtask(taskManager.getSubtaskById(6), "Я новая сабтасочка",
+        Subtask changedSubtask = new Subtask(inMemoryTaskManager.getSubtaskById(6), "Я новая сабтасочка",
                 "Меняю эпик на done",
                 Status.DONE);
 
 
-        taskManager.updateTask(changedTask);
-        taskManager.updateEpic(changedEpic);
+        inMemoryTaskManager.updateTask(changedTask);
+        inMemoryTaskManager.updateEpic(changedEpic);
 
-        System.out.println(taskManager.getTasks());
-        System.out.println(taskManager.getEpics());
-        taskManager.updateSubtask(changedSubtask);
-        System.out.println(taskManager.getSubtasks());
-        System.out.println(taskManager.getEpics());
+        System.out.println(inMemoryTaskManager.getTasks());
+        System.out.println(inMemoryTaskManager.getEpics());
+        inMemoryTaskManager.updateSubtask(changedSubtask);
+        System.out.println(inMemoryTaskManager.getSubtasks());
+        System.out.println(inMemoryTaskManager.getEpics());
     }
 }

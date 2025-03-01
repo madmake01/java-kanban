@@ -1,218 +1,47 @@
 package manager;
 
-import enums.Status;
-import exception.NonexistentEntityException;
-import model.AbstractTask;
 import model.Epic;
 import model.Subtask;
 import model.Task;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
-import static exception.TaskExceptionMessage.EPIC_DOES_NOT_EXIST;
-import static exception.TaskExceptionMessage.SUBTASK_DOES_NOT_EXIST;
-import static exception.TaskExceptionMessage.TASK_DOES_NOT_EXIST;
+public interface TaskManager {
+    List<Task> getTasks();
 
-public class TaskManager {
-    private final TaskValidator validator;
-    private final Map<Integer, Task> tasks;
-    private final Map<Integer, Epic> epics;
-    private final Map<Integer, Subtask> subtasks;
-    private int nextId = 1;
+    List<Epic> getEpics();
 
-    public TaskManager(TaskValidator validator) {
-        this.validator = validator;
-        tasks = new HashMap<>();
-        epics = new HashMap<>();
-        subtasks = new HashMap<>();
-    }
+    List<Subtask> getSubtasks();
 
-    public List<Task> getTasks() {
-        return List.copyOf(tasks.values());
-    }
+    void deleteTasks();
 
-    public List<Epic> getEpics() {
-        return List.copyOf(epics.values());
-    }
+    void deleteEpics();
 
-    public List<Subtask> getSubtasks() {
-        return List.copyOf(subtasks.values());
-    }
+    void deleteSubtasks();
 
-    public void deleteTasks() {
-        tasks.clear();
-    }
+    Task getTaskById(int id);
 
-    public void deleteEpics() {
-        epics.clear();
-        subtasks.clear();
-    }
+    Epic getEpicById(int id);
 
-    public void deleteSubtasks() {
-        subtasks.clear();
-        for (Epic epic : epics.values()) {
-            epic.removeAllSubtasks();
-            updateEpic(epic);
-        }
-    }
+    Subtask getSubtaskById(int id);
 
-    public Task getTaskById(int id) {
-        return getEntityById(tasks, id, TASK_DOES_NOT_EXIST);
-    }
+    void addTask(Task task);
 
-    public Epic getEpicById(int id) {
-        return getEntityById(epics, id, EPIC_DOES_NOT_EXIST);
-    }
+    void addEpic(Epic epic);
 
-    public Subtask getSubtaskById(int id) {
-        return getEntityById(subtasks, id, SUBTASK_DOES_NOT_EXIST);
-    }
+    void addSubtask(Subtask subtask, int epicId);
 
-    /*
-    Первые 4 шага одинаковые, можно какой-нибудь умный Map сделать с consumer
-    */
-    public void addTask(Task task) {
-        validator.validateNewTask(task);
+    void updateTask(Task task);
 
-        int taskId = generateId();
-        Task newTask = new Task(task, taskId);
+    void updateEpic(Epic epic);
 
-        tasks.put(taskId, newTask);
-    }
+    void updateSubtask(Subtask subtask);
 
-    public void addEpic(Epic epic) {
-        validator.validateNewEpic(epic);
+    void deleteTask(int id);
 
-        int epicId = generateId();
-        Epic newEpic = new Epic(epic, epicId);
+    void deleteEpic(int id);
 
-        epics.put(epicId, newEpic);
-    }
+    void deleteSubtask(int id);
 
-    public void addSubtask(Subtask subtask, int epicId) {
-        validator.validateNewSubTask(subtask);
-
-        int subtaskId = generateId();
-        Subtask newSubtask = new Subtask(subtask, subtaskId, epicId);
-
-        subtasks.put(subtaskId, newSubtask);
-
-        Epic epic = getEpicById(epicId);
-        epic.addSubtask(subtaskId);
-
-        updateEpic(epic);
-    }
-
-    //выбивается из стиля, по идее можно сделать также, как и другие update, пусть и получится менее оптимально
-    public void updateTask(Task task) {
-        int id = task.getId();
-        tasks.compute(id, (k, v) -> {
-            if (v == null) {
-                throw new NonexistentEntityException(TASK_DOES_NOT_EXIST + id);
-            }
-            return new Task(task, id);
-        });
-    }
-
-    /*
-    Сделать аля-DTO для передачи обновлений, который в принципе может содержать только id + имя + описание + статус
-    Заодно получится избавиться от кучи ненужных конструкторов в model
-    */
-
-    public void updateEpic(Epic epic) {
-        int epicId = epic.getId();
-        getEpicById(epicId);
-
-        /*
-        validator.ensureEpicSubtasksAreEqual(oldEpic, epic)
-        все равно не спасет, ведь в get я
-        возвращаю ссылки и там меняют, что хотят. Подумать об альтернативах
-        */
-
-        Status newStatus = calculateEpicStatus(epicId);
-        epics.put(epicId, new Epic(epic, newStatus));
-    }
-
-    public void updateSubtask(Subtask subtask) {
-        int subtaskId = subtask.getId();
-        getSubtaskById(subtaskId);
-
-        /*
-        validator.ensureSubtasksEpicsAreEqual(updatedSubtask, subtask);
-        В принципе аналогично предыдущему пункту
-        */
-        int subtaskEpicId = subtask.getEpicId();
-        Epic epic = getEpicById(subtaskEpicId);
-
-
-        subtasks.put(subtaskId, new Subtask(subtask, subtaskId, subtaskEpicId));
-        updateEpic(epic);
-    }
-
-    public void deleteTask(int id) {
-        removeEntityById(tasks, id, TASK_DOES_NOT_EXIST);
-    }
-
-    public void deleteEpic(int id) {
-        Epic removedEpic = removeEntityById(epics, id, EPIC_DOES_NOT_EXIST);
-
-        List<Integer> subtasksIdToRemove = removedEpic.getSubTaskIds();
-
-        for (Integer subtaskId : subtasksIdToRemove) {
-            removeEntityById(subtasks, subtaskId, SUBTASK_DOES_NOT_EXIST);
-        }
-    }
-
-    public void deleteSubtask(int id) {
-        Subtask removedSubtask = removeEntityById(subtasks, id, SUBTASK_DOES_NOT_EXIST);
-
-        int subtaskEpicId = removedSubtask.getEpicId();
-        Epic epic = getEpicById(subtaskEpicId);
-
-        epic.removeSubtask(id);
-        updateEpic(epic);
-    }
-
-    public List<Subtask> getEpicSubTasks(int id) {
-        Epic epic = getEpicById(id);
-        return epic.getSubTaskIds().stream().map(this::getSubtaskById).toList();
-    }
-
-    private int generateId() {
-        return nextId++;
-    }
-
-    private Status calculateEpicStatus(int epicId) {
-        List<Subtask> subTaskIds = getEpicSubTasks(epicId);
-        List<Status> uniqueStatuses = subTaskIds.stream().map(Subtask::getStatus)
-                .distinct().toList();
-
-        if (uniqueStatuses.size() > 1 || uniqueStatuses.contains(Status.IN_PROGRESS)) {
-            return Status.IN_PROGRESS;
-        }
-
-        if (uniqueStatuses.contains(Status.DONE)) {
-            return Status.DONE;
-        }
-
-        return Status.NEW;
-    }
-
-    private <T extends AbstractTask> T getEntityById(Map<Integer, T> storage, int id, String errorMessage) {
-        T entity = storage.get(id);
-        if (entity == null) {
-            throw new NonexistentEntityException(errorMessage + id);
-        }
-        return entity;
-    }
-
-    private <T extends AbstractTask> T removeEntityById(Map<Integer, T> storage, int id, String errorMessage) {
-        T entity = storage.remove(id);
-        if (entity == null) {
-            throw new NonexistentEntityException(errorMessage + id);
-        }
-        return entity;
-    }
+    List<Subtask> getEpicSubTasks(int id);
 }
