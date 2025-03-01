@@ -15,7 +15,6 @@ import static exception.TaskExceptionMessage.EPIC_DOES_NOT_EXIST;
 import static exception.TaskExceptionMessage.SUBTASK_DOES_NOT_EXIST;
 import static exception.TaskExceptionMessage.TASK_DOES_NOT_EXIST;
 
-//Я все переделала. Надеюсь, что хуже не стало :'(
 public class TaskManager {
     private final TaskValidator validator;
     private final Map<Integer, Task> tasks;
@@ -132,7 +131,7 @@ public class TaskManager {
         возвращаю ссылки и там меняют, что хотят. Подумать об альтернативах
         */
 
-        Status newStatus = calculateEpicStatus(epic);
+        Status newStatus = calculateEpicStatus(epicId);
         epics.put(epicId, new Epic(epic, newStatus));
     }
 
@@ -185,9 +184,9 @@ public class TaskManager {
         return nextId++;
     }
 
-    private Status calculateEpicStatus(Epic epic) {
-        List<Integer> subTaskIds = epic.getSubTaskIds();
-        List<Status> uniqueStatuses = subTaskIds.stream().map(this::getSubtaskById).map(Subtask::getStatus)
+    private Status calculateEpicStatus(int epicId) {
+        List<Subtask> subTaskIds = getEpicSubTasks(epicId);
+        List<Status> uniqueStatuses = subTaskIds.stream().map(Subtask::getStatus)
                 .distinct().toList();
 
         if (uniqueStatuses.size() > 1 || uniqueStatuses.contains(Status.IN_PROGRESS)) {
