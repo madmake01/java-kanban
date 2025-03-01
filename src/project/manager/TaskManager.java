@@ -25,23 +25,23 @@ public interface TaskManager {
 
     Subtask getSubtaskWithNotification(int id);
 
-    void addTask(Task task);
+    Task addTask(Task task);
 
-    void addEpic(Epic epic);
+    Epic addEpic(Epic epic);
 
-    void addSubtask(Subtask subtask, int epicId);
+    Subtask addSubtask(Subtask subtask, int epicId);
 
-    void updateTask(Task task);
+    Task updateTask(Task task);
 
-    void updateEpic(Epic epic);
+    Epic updateEpic(Epic epic);
 
-    void updateSubtask(Subtask subtask);
+    Subtask updateSubtask(Subtask subtask);
 
-    void deleteTask(int id);
+    Task deleteTask(int id);
 
-    void deleteEpic(int id);
+    Epic deleteEpic(int id);
 
-    void deleteSubtask(int id);
+    Subtask deleteSubtask(int id);
 
     List<Subtask> getEpicSubTasks(int id);
 }
