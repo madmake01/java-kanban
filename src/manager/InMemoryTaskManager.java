@@ -6,6 +6,7 @@ import model.AbstractTask;
 import model.Epic;
 import model.Subtask;
 import model.Task;
+import util.TaskValidator;
 
 import java.util.HashMap;
 import java.util.List;
@@ -20,10 +21,13 @@ public class InMemoryTaskManager implements TaskManager {
     private final Map<Integer, Task> tasks;
     private final Map<Integer, Epic> epics;
     private final Map<Integer, Subtask> subtasks;
+    private final HistoryManager historyManager;
     private int nextId = 1;
 
-    public InMemoryTaskManager(TaskValidator validator) {
+    public InMemoryTaskManager(TaskValidator validator, HistoryManager historyManager) {
         this.validator = validator;
+        this.historyManager = historyManager;
+
         tasks = new HashMap<>();
         epics = new HashMap<>();
         subtasks = new HashMap<>();
@@ -139,12 +143,6 @@ public class InMemoryTaskManager implements TaskManager {
         int epicId = epic.getId();
         getEpicById(epicId);
 
-        /*
-        validator.ensureEpicSubtasksAreEqual(oldEpic, epic)
-        все равно не спасет, ведь в get я
-        возвращаю ссылки и там меняют, что хотят. Подумать об альтернативах
-        */
-
         Status newStatus = calculateEpicStatus(epicId);
         epics.put(epicId, new Epic(epic, newStatus));
     }
@@ -154,13 +152,8 @@ public class InMemoryTaskManager implements TaskManager {
         int subtaskId = subtask.getId();
         getSubtaskById(subtaskId);
 
-        /*
-        validator.ensureSubtasksEpicsAreEqual(updatedSubtask, subtask);
-        В принципе аналогично предыдущему пункту
-        */
         int subtaskEpicId = subtask.getEpicId();
         Epic epic = getEpicById(subtaskEpicId);
-
 
         subtasks.put(subtaskId, new Subtask(subtask, subtaskId, subtaskEpicId));
         updateEpic(epic);
@@ -197,6 +190,10 @@ public class InMemoryTaskManager implements TaskManager {
     public List<Subtask> getEpicSubTasks(int id) {
         Epic epic = getEpicById(id);
         return epic.getSubTaskIds().stream().map(this::getSubtaskById).toList();
+    }
+
+    private void notifyHistoryMananager(AbstractTask task) {
+        historyManager.add(task);
     }
 
     private int generateId() {
