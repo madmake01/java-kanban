@@ -74,21 +74,21 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public Task getTaskWithNotification(int id) {
-        Task task = getEntityById(tasks, id, TASK_DOES_NOT_EXIST);
+        Task task = getTaskById(id);
         addToHistoryManager(task);
         return task;
     }
 
     @Override
     public Epic getEpicWithNotification(int id) {
-        Epic epic = getEntityById(epics, id, EPIC_DOES_NOT_EXIST);
+        Epic epic = getEpicById(id);
         addToHistoryManager(epic);
         return epic;
     }
 
     @Override
     public Subtask getSubtaskWithNotification(int id) {
-        Subtask subtask = getEntityById(subtasks, id, SUBTASK_DOES_NOT_EXIST);
+        Subtask subtask = getSubtaskById(id);
         addToHistoryManager(subtask);
         return subtask;
     }
