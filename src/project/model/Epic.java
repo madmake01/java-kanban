@@ -3,6 +3,7 @@ package project.model;
 import project.util.AbstractTaskBuilder;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class Epic extends AbstractTask {
@@ -14,19 +15,7 @@ public class Epic extends AbstractTask {
     }
 
     public List<Integer> getSubTaskIds() {
-        return new ArrayList<>(subTaskIds);
-    }
-
-    public void addSubtask(int subtaskId) {
-        subTaskIds.add(subtaskId);
-    }
-
-    public void removeSubtask(Integer subtaskId) {
-        subTaskIds.remove(subtaskId);
-    }
-
-    public void removeAllSubtasks() {
-        subTaskIds.clear();
+        return Collections.unmodifiableList(subTaskIds);
     }
 
     @Override
@@ -41,22 +30,25 @@ public class Epic extends AbstractTask {
     }
 
     public static class Builder extends AbstractTaskBuilder<Epic, Builder> {
-        private List<Integer> subTaskIds = new ArrayList<>();
-
-        public Builder setSubTaskIds(List<Integer> subTaskIds) {
-            this.subTaskIds = subTaskIds;
-            return this;
-        }
+        private List<Integer> subTaskIds;
 
         public Builder fromEpic(Epic epic) {
             copyFromAbstractTask(epic);
-            this.subTaskIds = epic.getSubTaskIds();
+            this.subTaskIds = new ArrayList<>(epic.getSubTaskIds());
+            return this;
+        }
 
+        public Builder fromEpicWithNewSubtasks(Epic epic, List<Integer> subTaskIds) {
+            copyFromAbstractTask(epic);
+            this.subTaskIds = subTaskIds;
             return this;
         }
 
         public Epic build() {
             validate();
+            if (subTaskIds == null) {
+                subTaskIds = new ArrayList<>();
+            }
             return new Epic(this);
         }
 

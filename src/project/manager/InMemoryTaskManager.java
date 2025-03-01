@@ -8,6 +8,7 @@ import project.model.Subtask;
 import project.model.Task;
 import project.util.TaskValidator;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -63,8 +64,11 @@ public class InMemoryTaskManager implements TaskManager {
     public void deleteSubtasks() {
         subtasks.clear();
         for (Epic epic : epics.values()) {
-            epic.removeAllSubtasks();
-            updateEpic(epic);
+            Epic emptyEpic = new Epic.Builder()
+                    .fromEpicWithNewSubtasks(epic, new ArrayList<>())
+                    .build();
+
+            updateEpic(emptyEpic);
         }
     }
 
@@ -127,11 +131,16 @@ public class InMemoryTaskManager implements TaskManager {
                 .setEpicId(epicId)
                 .build();
 
-        Epic epic = getEpicByIdInternal(epicId);
+        Epic epic = getEpicById(epicId);
         subtasks.put(subtaskId, newSubtask);
-        epic.addSubtask(subtaskId);
 
-        updateEpic(epic);
+        List<Integer> updatedSubtaskIds = new ArrayList<>(epic.getSubTaskIds());
+        updatedSubtaskIds.add(subtaskId);
+
+        Epic updatedEpic = new Epic.Builder()
+                .fromEpicWithNewSubtasks(epic, updatedSubtaskIds)
+                .build();
+        updateEpic(updatedEpic);
     }
 
     //выбивается из стиля, по идее можно сделать также, как и другие update, пусть и получится менее оптимально
@@ -151,9 +160,10 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public void updateEpic(Epic epic) {
         int epicId = epic.getId();
-        getEpicByIdInternal(epicId);
+        getEpicById(epicId);
 
-        Status newStatus = calculateEpicStatus(epicId);
+        Status newStatus = calculateStatus(epic.getSubTaskIds());
+
         Epic updatedEpic = new Epic.Builder()
                 .fromEpic(epic)
                 .setStatus(newStatus)
@@ -164,10 +174,10 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public void updateSubtask(Subtask subtask) {
         int subtaskId = subtask.getId();
-        getSubtaskByIdInternal(subtaskId);
+        getSubtaskById(subtaskId);
 
-        int subtaskEpicId = subtask.getEpicId();
-        Epic epic = getEpicByIdInternal(subtaskEpicId);
+        int epicId = subtask.getEpicId();
+        Epic epic = getEpicById(epicId);
 
         Subtask updatedSubtask = new Subtask.Builder()
                 .fromSubtask(subtask)
@@ -200,30 +210,40 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public void deleteSubtask(int id) {
-        Subtask removedSubtask = removeEntityById(subtasks, id, SUBTASK_DOES_NOT_EXIST);
+        Subtask subtask = removeEntityById(subtasks, id, SUBTASK_DOES_NOT_EXIST);
 
-        int subtaskEpicId = removedSubtask.getEpicId();
-        Epic epic = getEpicByIdInternal(subtaskEpicId);
+        int subtaskEpicId = subtask.getEpicId();
+        Epic epic = getEpicById(subtaskEpicId);
 
-        epic.removeSubtask(id);
-        updateEpic(epic);
+        List<Integer> updatedSubtaskIds = new ArrayList<>(epic.getSubTaskIds());
+        updatedSubtaskIds.remove((Integer) id);
+
+        Epic updatedEpic = new Epic.Builder()
+                .fromEpicWithNewSubtasks(epic, updatedSubtaskIds)
+                .build();
+
+        updateEpic(updatedEpic);
     }
 
     @Override
     public List<Subtask> getEpicSubTasks(int id) {
-        Epic epic = getEpicByIdInternal(id);
-        return epic.getSubTaskIds().stream().map(this::getSubtaskByIdInternal).toList();
+        Epic epic = getEpicById(id);
+        return getSubtasksFromIds(epic.getSubTaskIds());
     }
 
-    private Task getTaskByIdInternal(int id) {
+    private List<Subtask> getSubtasksFromIds(List<Integer> subtaskIds) {
+        return subtaskIds.stream().map(this::getSubtaskById).toList();
+    }
+
+    private Task getTaskById(int id) {
         return getEntityById(tasks, id, TASK_DOES_NOT_EXIST);
     }
 
-    private Epic getEpicByIdInternal(int id) {
+    private Epic getEpicById(int id) {
         return getEntityById(epics, id, EPIC_DOES_NOT_EXIST);
     }
 
-    private Subtask getSubtaskByIdInternal(int id) {
+    private Subtask getSubtaskById(int id) {
         return getEntityById(subtasks, id, SUBTASK_DOES_NOT_EXIST);
     }
 
@@ -235,9 +255,9 @@ public class InMemoryTaskManager implements TaskManager {
         return nextId++;
     }
 
-    private Status calculateEpicStatus(int epicId) {
-        List<Subtask> subTaskIds = getEpicSubTasks(epicId);
-        List<Status> uniqueStatuses = subTaskIds.stream().map(Subtask::getStatus)
+    private Status calculateStatus(List<Integer> subtaskIds) {
+        List<Subtask> subtasksFromEpic = getSubtasksFromIds(subtaskIds);
+        List<Status> uniqueStatuses = subtasksFromEpic.stream().map(Subtask::getStatus)
                 .distinct().toList();
 
         if (uniqueStatuses.size() > 1 || uniqueStatuses.contains(Status.IN_PROGRESS)) {
