@@ -12,7 +12,7 @@ import static project.exception.TaskExceptionMessage.EPICS_SUBTASKS_SHOULD_BE_EQ
 import static project.exception.TaskExceptionMessage.ID_SHOULD_BE_DEFAULT;
 import static project.exception.TaskExceptionMessage.NEW_EPIC_SHOULD_BE_EMPTY;
 import static project.exception.TaskExceptionMessage.SUBTASK_SHOULD_HAVE_EQUAL_EPICS;
-import static project.model.AbstractTask.DEFAULT_ID;
+import static project.util.AbstractTaskBuilder.DEFAULT_ID;
 
 public class TaskValidator {
 
@@ -30,21 +30,6 @@ public class TaskValidator {
 
         if (!epic.getSubTaskIds().isEmpty()) {
             throw new EntityAlreadyExistsException(NEW_EPIC_SHOULD_BE_EMPTY);
-        }
-    }
-
-    public void ensureEpicSubtasksAreEqual(Epic oldEpic, Epic newEpic) {
-        List<Integer> oldSubtaskList = oldEpic.getSubTaskIds();
-        List<Integer> newSubtaskList = newEpic.getSubTaskIds();
-
-        boolean isEqualSize = oldSubtaskList.size() == newSubtaskList.size();
-        if (!isEqualSize) {
-            throw new IllegalArgumentException(EPICS_SUBTASKS_SHOULD_BE_EQUAL);
-        }
-
-        boolean isEqualIds = new HashSet<>(oldSubtaskList).containsAll(newSubtaskList);
-        if (!isEqualIds) {
-            throw new IllegalArgumentException(EPICS_SUBTASKS_SHOULD_BE_EQUAL);
         }
     }
 
