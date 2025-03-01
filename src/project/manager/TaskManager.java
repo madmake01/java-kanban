@@ -19,11 +19,11 @@ public interface TaskManager {
 
     void deleteSubtasks();
 
-    Task getTaskById(int id);
+    Task getTaskWithNotification(int id);
 
-    Epic getEpicById(int id);
+    Epic getEpicWithNotification(int id);
 
-    Subtask getSubtaskById(int id);
+    Subtask getSubtaskWithNotification(int id);
 
     void addTask(Task task);
 

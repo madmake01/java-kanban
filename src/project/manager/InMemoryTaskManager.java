@@ -69,23 +69,27 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     @Override
-    public Task getTaskById(int id) {
-        return getEntityById(tasks, id, TASK_DOES_NOT_EXIST);
+    public Task getTaskWithNotification(int id) {
+        Task task = getEntityById(tasks, id, TASK_DOES_NOT_EXIST);
+        addToHistoryManager(task);
+        return task;
     }
 
     @Override
-    public Epic getEpicById(int id) {
-        return getEntityById(epics, id, EPIC_DOES_NOT_EXIST);
+    public Epic getEpicWithNotification(int id) {
+        Epic epic = getEntityById(epics, id, EPIC_DOES_NOT_EXIST);
+        addToHistoryManager(epic);
+        return epic;
     }
 
     @Override
-    public Subtask getSubtaskById(int id) {
-        return getEntityById(subtasks, id, SUBTASK_DOES_NOT_EXIST);
+    public Subtask getSubtaskWithNotification(int id) {
+        Subtask subtask = getEntityById(subtasks, id, SUBTASK_DOES_NOT_EXIST);
+        addToHistoryManager(subtask);
+        return subtask;
     }
 
-    /*
-    Первые 4 шага одинаковые, можно какой-нибудь умный Map сделать с consumer
-    */
+
     @Override
     public void addTask(Task task) {
         validator.validateNewTask(task);
@@ -125,8 +129,6 @@ public class InMemoryTaskManager implements TaskManager {
 
         Epic epic = getEpicByIdInternal(epicId);
         subtasks.put(subtaskId, newSubtask);
-
-        Epic epic = getEpicById(epicId);
         epic.addSubtask(subtaskId);
 
         updateEpic(epic);
@@ -146,15 +148,10 @@ public class InMemoryTaskManager implements TaskManager {
         });
     }
 
-    /*
-    Сделать аля-DTO для передачи обновлений, который в принципе может содержать только id + имя + описание + статус
-    Заодно получится избавиться от кучи ненужных конструкторов в model
-    */
-
     @Override
     public void updateEpic(Epic epic) {
         int epicId = epic.getId();
-        getEpicById(epicId);
+        getEpicByIdInternal(epicId);
 
         Status newStatus = calculateEpicStatus(epicId);
         Epic updatedEpic = new Epic.Builder()
@@ -167,10 +164,10 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public void updateSubtask(Subtask subtask) {
         int subtaskId = subtask.getId();
-        getSubtaskById(subtaskId);
+        getSubtaskByIdInternal(subtaskId);
 
         int subtaskEpicId = subtask.getEpicId();
-        Epic epic = getEpicById(subtaskEpicId);
+        Epic epic = getEpicByIdInternal(subtaskEpicId);
 
         Subtask updatedSubtask = new Subtask.Builder()
                 .fromSubtask(subtask)
@@ -184,6 +181,11 @@ public class InMemoryTaskManager implements TaskManager {
     public void deleteTask(int id) {
         removeEntityById(tasks, id, TASK_DOES_NOT_EXIST);
     }
+
+    /*
+    Сделать аля-DTO для передачи обновлений, который в принципе может содержать только id + имя + описание + статус
+    Заодно получится избавиться от кучи ненужных конструкторов в model
+    */
 
     @Override
     public void deleteEpic(int id) {
@@ -201,7 +203,7 @@ public class InMemoryTaskManager implements TaskManager {
         Subtask removedSubtask = removeEntityById(subtasks, id, SUBTASK_DOES_NOT_EXIST);
 
         int subtaskEpicId = removedSubtask.getEpicId();
-        Epic epic = getEpicById(subtaskEpicId);
+        Epic epic = getEpicByIdInternal(subtaskEpicId);
 
         epic.removeSubtask(id);
         updateEpic(epic);
@@ -209,11 +211,23 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public List<Subtask> getEpicSubTasks(int id) {
-        Epic epic = getEpicById(id);
-        return epic.getSubTaskIds().stream().map(this::getSubtaskById).toList();
+        Epic epic = getEpicByIdInternal(id);
+        return epic.getSubTaskIds().stream().map(this::getSubtaskByIdInternal).toList();
     }
 
-    private void notifyHistoryMananager(AbstractTask task) {
+    private Task getTaskByIdInternal(int id) {
+        return getEntityById(tasks, id, TASK_DOES_NOT_EXIST);
+    }
+
+    private Epic getEpicByIdInternal(int id) {
+        return getEntityById(epics, id, EPIC_DOES_NOT_EXIST);
+    }
+
+    private Subtask getSubtaskByIdInternal(int id) {
+        return getEntityById(subtasks, id, SUBTASK_DOES_NOT_EXIST);
+    }
+
+    private void addToHistoryManager(AbstractTask task) {
         historyManager.add(task);
     }
 
