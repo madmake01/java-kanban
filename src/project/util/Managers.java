@@ -10,7 +10,7 @@ public class Managers {
     private TaskManager defaultTaskManager;
     private HistoryManager defaultHistoryManager;
 
-    private Managers() {
+    public Managers() {
         initializeDefaultTaskManager();
     }
 

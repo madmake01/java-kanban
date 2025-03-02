@@ -1,5 +1,6 @@
 package test.project.manager;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import project.enums.Status;
@@ -26,8 +27,9 @@ class InMemoryTaskManagerTest {
 
     @BeforeEach
     void setUp() {
-        historyManager = Managers.getInstance().getDefaultHistoryManager();
-        taskManager = Managers.getInstance().getDefaultTaskManager();
+        Managers managers = new Managers();
+        historyManager = managers.getDefaultHistoryManager();
+        taskManager = managers.getDefaultTaskManager();
 
         Task firstTask = new Task.Builder()
                 .setName("Первая задача")
@@ -200,6 +202,6 @@ class InMemoryTaskManagerTest {
                 .build();
 
         assertThrows(NonexistentEntityException.class, () -> taskManager.updateTask(newTask));
-
     }
+
 }
