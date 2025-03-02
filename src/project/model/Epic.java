@@ -44,6 +44,7 @@ public class Epic extends AbstractTask {
             return self();
         }
 
+        @Override
         public Epic build() {
             validate();
             if (subTaskIds == null) {

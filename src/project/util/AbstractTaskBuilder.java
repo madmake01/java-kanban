@@ -48,14 +48,14 @@ public abstract class AbstractTaskBuilder<T extends AbstractTask, B extends Abst
         return self();
     }
 
+    public abstract T build();
+
     protected void copyFromAbstractTask(AbstractTask abstractTask) {
         this.id = abstractTask.getId();
         this.name = abstractTask.getName();
         this.description = abstractTask.getDescription();
         this.status = abstractTask.getStatus();
     }
-
-    public abstract T build();
 
     protected abstract B self();
 
