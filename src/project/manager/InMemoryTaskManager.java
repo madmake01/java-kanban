@@ -147,7 +147,6 @@ public class InMemoryTaskManager implements TaskManager {
         return newSubtask;
     }
 
-    //выбивается из стиля, по идее можно сделать также, как и другие update, пусть и получится менее оптимально
     @Override
     public Task updateTask(Task task) {
         int id = task.getId();
@@ -160,6 +159,9 @@ public class InMemoryTaskManager implements TaskManager {
         return updatedTask;
     }
 
+    /*
+     все еще не защищена от того, чтобы тут передать эпик со случайным списком
+    */
     @Override
     public Epic updateEpic(Epic epic) {
         int epicId = epic.getId();

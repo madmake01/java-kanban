@@ -7,10 +7,10 @@ public abstract class AbstractTaskBuilder<T extends AbstractTask, B extends Abst
     public static final int DEFAULT_ID = -1;
     public static final Status DEFAULT_STATUS = Status.NEW;
 
-    protected int id = DEFAULT_ID;
-    protected String name;
-    protected String description;
-    protected Status status = DEFAULT_STATUS;
+    private int id = DEFAULT_ID;
+    private String name;
+    private String description;
+    private Status status = DEFAULT_STATUS;
 
     public int getId() {
         return id;
