@@ -30,14 +30,14 @@ public class Subtask extends AbstractTask {
 
         public Builder setEpicId(int epicId) {
             this.epicId = epicId;
-            return this;
+            return self();
         }
 
         public Builder fromSubtask(Subtask subtask) {
             copyFromAbstractTask(subtask);
             this.epicId = subtask.getEpicId();
 
-            return this;
+            return self();
         }
 
         @Override

@@ -48,7 +48,7 @@ public abstract class AbstractTaskBuilder<T extends AbstractTask, B extends Abst
         return self();
     }
 
-    public void copyFromAbstractTask(AbstractTask abstractTask) {
+    protected void copyFromAbstractTask(AbstractTask abstractTask) {
         this.id = abstractTask.getId();
         this.name = abstractTask.getName();
         this.description = abstractTask.getDescription();

@@ -23,7 +23,7 @@ public class InMemoryHistoryManager implements HistoryManager {
     }
 
     @Override
-    public List<AbstractTask> getHistory() {
+    public List<AbstractTask> getDefaultHistory() {
         return List.copyOf(this.history);
     }
 }

@@ -35,13 +35,13 @@ public class Epic extends AbstractTask {
         public Builder fromEpic(Epic epic) {
             copyFromAbstractTask(epic);
             this.subTaskIds = new ArrayList<>(epic.getSubTaskIds());
-            return this;
+            return self();
         }
 
         public Builder fromEpicWithNewSubtasks(Epic epic, List<Integer> subTaskIds) {
             copyFromAbstractTask(epic);
             this.subTaskIds = subTaskIds;
-            return this;
+            return self();
         }
 
         public Epic build() {

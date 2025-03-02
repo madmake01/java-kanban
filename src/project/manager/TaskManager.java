@@ -1,5 +1,6 @@
 package project.manager;
 
+import project.model.AbstractTask;
 import project.model.Epic;
 import project.model.Subtask;
 import project.model.Task;
@@ -43,5 +44,7 @@ public interface TaskManager {
 
     Subtask deleteSubtask(int id);
 
-    List<Subtask> getEpicSubTasks(int id);
+    List<Subtask> getEpicSubtasks(int id);
+
+    List<AbstractTask> getHistory();
 }

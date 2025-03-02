@@ -29,7 +29,7 @@ public class TaskValidator {
         validateId(epic.getId());
 
         if (!epic.getSubTaskIds().isEmpty()) {
-            throw new EntityAlreadyExistsException(NEW_EPIC_SHOULD_BE_EMPTY);
+            throw new InvalidParameterException(NEW_EPIC_SHOULD_BE_EMPTY);
         }
         if (epic.getStatus() != DEFAULT_STATUS) {
             throw new InvalidParameterException(NEW_EPIC_SHOULD_HAVE_DEFAULT_STATUS);
@@ -38,7 +38,7 @@ public class TaskValidator {
 
     public void ensureSubtasksEpicsAreEqual(Subtask oldSubtask, Subtask newSubtask) {
         if (oldSubtask.getEpicId() != newSubtask.getEpicId()) {
-            throw new IllegalArgumentException(SUBTASK_SHOULD_HAVE_EQUAL_EPICS);
+            throw new InvalidParameterException(SUBTASK_SHOULD_HAVE_EQUAL_EPICS);
         }
     }
 

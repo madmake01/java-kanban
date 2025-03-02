@@ -167,11 +167,11 @@ public class InMemoryTaskManager implements TaskManager {
         int epicId = epic.getId();
         getEpicById(epicId);
 
-        Status newStatus = calculateStatus(epic.getSubTaskIds());
+        Status updatedStatus = calculateStatus(epic.getSubTaskIds());
 
         Epic updatedEpic = new Epic.Builder()
                 .fromEpic(epic)
-                .setStatus(newStatus)
+                .setStatus(updatedStatus)
                 .build();
         epics.put(epicId, updatedEpic);
         return updatedEpic;
@@ -183,8 +183,7 @@ public class InMemoryTaskManager implements TaskManager {
         Subtask oldSubtask = getSubtaskById(subtaskId);
         validator.ensureSubtasksEpicsAreEqual(oldSubtask, subtask);
 
-        int epicId = subtask.getEpicId();
-        Epic epic = getEpicById(epicId);
+        Epic epic = getEpicById(subtask.getEpicId());
 
         Subtask updatedSubtask = new Subtask.Builder()
                 .fromSubtask(subtask)
@@ -231,9 +230,14 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     @Override
-    public List<Subtask> getEpicSubTasks(int id) {
+    public List<Subtask> getEpicSubtasks(int id) {
         Epic epic = getEpicById(id);
         return getSubtasksFromIds(epic.getSubTaskIds());
+    }
+
+    @Override
+    public List<AbstractTask> getHistory() {
+        return historyManager.getDefaultHistory();
     }
 
     private List<Subtask> getSubtasksFromIds(List<Integer> subtaskIds) {
