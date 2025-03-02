@@ -180,7 +180,8 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public Subtask updateSubtask(Subtask subtask) {
         int subtaskId = subtask.getId();
-        getSubtaskById(subtaskId);
+        Subtask oldSubtask = getSubtaskById(subtaskId);
+        validator.ensureSubtasksEpicsAreEqual(oldSubtask, subtask);
 
         int epicId = subtask.getEpicId();
         Epic epic = getEpicById(epicId);
@@ -198,11 +199,6 @@ public class InMemoryTaskManager implements TaskManager {
     public Task deleteTask(int id) {
         return removeEntityById(tasks, id, TASK_DOES_NOT_EXIST);
     }
-
-    /*
-    Сделать аля-DTO для передачи обновлений, который в принципе может содержать только id + имя + описание + статус
-    Заодно получится избавиться от кучи ненужных конструкторов в model
-    */
 
     @Override
     public Epic deleteEpic(int id) {
