@@ -218,7 +218,7 @@ public class InMemoryTaskManagerGeneralTest {
     }
 
     @Test
-    void testUserCaseSprint6 () {
+    void testUserCaseSprint6() {
         extracted();
     }
 
