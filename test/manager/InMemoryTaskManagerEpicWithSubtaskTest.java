@@ -1,4 +1,4 @@
-package test.project.manager;
+package manager;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -18,7 +18,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-public class InMemoryTaskManagerEpicWithSubtaskTest {
+class InMemoryTaskManagerEpicWithSubtaskTest {
     TaskManager taskManager;
 
     String nameEpicFirst = "Первый эпик";
@@ -70,15 +70,16 @@ public class InMemoryTaskManagerEpicWithSubtaskTest {
                 .fromSubtask(oneFirstSubtask)
                 .setId(2)
                 .build();
+        int epicId = firstEpic.getId();
         assertThrows(EntityAlreadyExistsException.class, () -> taskManager.addSubtask(subtaskWithWrongId,
-                firstEpic.getId()));
+                epicId));
 
         Subtask subtaskWithNonDefaultEpicId = new Subtask.Builder()
                 .fromSubtask(oneFirstSubtask)
                 .setEpicId(1)
                 .build();
         assertThrows(EntityAlreadyExistsException.class, () -> taskManager.addSubtask(subtaskWithNonDefaultEpicId,
-                firstEpic.getId()));
+                epicId));
     }
 
     @Test
