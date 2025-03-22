@@ -167,7 +167,6 @@ public class InMemoryTaskManagerGeneralTest {
         Subtask lastHistoryTask = taskManager.getSubtaskWithNotification(6);
 
         List<AbstractTask> history = taskManager.getHistory();
-        assertEquals(10, history.size(), "Wrong history size");
         assertEquals(lastHistoryTask, history.getLast());
         assertEquals(ninthHistoryTask, history.get(history.size() - 2));
         List<Task> tasksRemainInHistory = allTasks.subList(history.size() - 2, allTasks.size());
