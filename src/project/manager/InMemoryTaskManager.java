@@ -260,6 +260,10 @@ public class InMemoryTaskManager implements TaskManager {
         historyManager.add(task);
     }
 
+    private void removeFromHistoryManager(int id) {
+        historyManager.remove(id);
+    }
+
     private int generateId() {
         return nextId++;
     }
@@ -289,6 +293,7 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     private <T extends AbstractTask> T removeEntityById(Map<Integer, T> storage, int id, String errorMessage) {
+        removeFromHistoryManager(id);
         T entity = storage.remove(id);
         if (entity == null) {
             throw new NonexistentEntityException(errorMessage + id);
