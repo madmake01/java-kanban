@@ -66,7 +66,7 @@ public class InMemoryTaskManagerEpicTest {
         assertEquals(firstEpic.getDescription(), addedEpic.getDescription());
         assertEquals(firstEpic.getStatus(), addedEpic.getStatus());
         assertEquals(3, addedEpic.getId());
-        assertEquals(0, addedEpic.getSubTaskIds().size());
+        assertEquals(0, addedEpic.getSubtaskIds().size());
     }
 
     @Test

@@ -60,7 +60,7 @@ public class InMemoryTaskManagerEpicWithSubtaskTest {
 
         Epic updatedEpic = taskManager.getEpicWithNotification(1);
         assertEquals(Status.DONE, updatedEpic.getStatus(), "Wrong subtask status");
-        assertEquals(1, updatedEpic.getSubTaskIds().size(), "Wrong subtask id list");
+        assertEquals(1, updatedEpic.getSubtaskIds().size(), "Wrong subtask id list");
 
     }
 
@@ -147,6 +147,6 @@ public class InMemoryTaskManagerEpicWithSubtaskTest {
         Epic afterDeletedSubtask = taskManager.getEpicWithNotification(1);
 
         assertEquals(Status.NEW, afterDeletedSubtask.getStatus(), "Wrong subtask status");
-        assertEquals(0, afterDeletedSubtask.getSubTaskIds().size(), "Wrong subtask id list");
+        assertEquals(0, afterDeletedSubtask.getSubtaskIds().size(), "Wrong subtask id list");
     }
 }

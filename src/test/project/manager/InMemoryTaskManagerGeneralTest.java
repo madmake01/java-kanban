@@ -211,7 +211,7 @@ public class InMemoryTaskManagerGeneralTest {
         List<Epic> epics = taskManager.getEpics();
         for (Epic epic : epics) {
             assertEquals(Status.NEW, epic.getStatus());
-            assertEquals(0, epic.getSubTaskIds().size());
+            assertEquals(0, epic.getSubtaskIds().size());
             assertEquals(0, taskManager.getEpicSubtasks(epic.getId()).size());
         }
     }
