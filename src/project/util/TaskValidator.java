@@ -28,7 +28,7 @@ public class TaskValidator {
     public void validateNewEpic(Epic epic) {
         validateId(epic.getId());
 
-        if (!epic.getSubTaskIds().isEmpty()) {
+        if (!epic.getSubtaskIds().isEmpty()) {
             throw new InvalidParameterException(NEW_EPIC_SHOULD_BE_EMPTY);
         }
         if (epic.getStatus() != DEFAULT_STATUS) {

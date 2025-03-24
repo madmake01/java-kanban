@@ -1,4 +1,4 @@
-package test.project.manager;
+package manager;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -10,14 +10,16 @@ import project.model.Subtask;
 import project.model.Task;
 import project.util.Managers;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class InMemoryTaskManagerGeneralTest {
+class InMemoryTaskManagerGeneralTest {
 
     TaskManager taskManager;
 
@@ -167,7 +169,6 @@ public class InMemoryTaskManagerGeneralTest {
         Subtask lastHistoryTask = taskManager.getSubtaskWithNotification(6);
 
         List<AbstractTask> history = taskManager.getHistory();
-        assertEquals(10, history.size(), "Wrong history size");
         assertEquals(lastHistoryTask, history.getLast());
         assertEquals(ninthHistoryTask, history.get(history.size() - 2));
         List<Task> tasksRemainInHistory = allTasks.subList(history.size() - 2, allTasks.size());
@@ -211,9 +212,73 @@ public class InMemoryTaskManagerGeneralTest {
         List<Epic> epics = taskManager.getEpics();
         for (Epic epic : epics) {
             assertEquals(Status.NEW, epic.getStatus());
-            assertEquals(0, epic.getSubTaskIds().size());
+            assertEquals(0, epic.getSubtaskIds().size());
             assertEquals(0, taskManager.getEpicSubtasks(epic.getId()).size());
         }
+    }
+
+    @Test
+    void testUserCaseSprint6() {
+        List<Epic> epics = taskManager.getEpics();
+        List<Subtask> subtasks = taskManager.getSubtasks();
+        List<Task> tasks = taskManager.getTasks();
+
+        epics.forEach(epic -> taskManager.getEpicWithNotification(epic.getId()));
+        testHistoryTasksAreUnique();
+        subtasks.forEach(subtask -> taskManager.getSubtaskWithNotification(subtask.getId()));
+        testHistoryTasksAreUnique();
+        tasks.forEach(task -> taskManager.getTaskWithNotification(task.getId()));
+        testHistoryTasksAreUnique();
+
+        epics.reversed().forEach(epic -> taskManager.getEpicWithNotification(epic.getId()));
+        testHistoryTasksAreUnique();
+        subtasks.reversed().forEach(epic -> taskManager.getSubtaskWithNotification(epic.getId()));
+        testHistoryTasksAreUnique();
+        tasks.reversed().forEach(epic -> taskManager.getTaskWithNotification(epic.getId()));
+        testHistoryTasksAreUnique();
+
+        List<AbstractTask> history = taskManager.getHistory();
+        int expectedSize = epics.size() + subtasks.size() + tasks.size();
+
+        List<AbstractTask> expectedTasks = new ArrayList<>(epics.reversed());
+        expectedTasks.addAll(subtasks.reversed());
+        expectedTasks.addAll(tasks.reversed());
+
+        assertEquals(expectedTasks, history);
+        assertEquals(expectedSize, history.size());
+
+        testDeletingEpicAlsoDeleteSubtasksFromHistory(epics);
+
+        deletedTaskDeletesFromHistory(tasks);
+    }
+
+    private void deletedTaskDeletesFromHistory(List<Task> tasks) {
+        Task task1 = tasks.get(1);
+        taskManager.deleteTask(task1.getId());
+        List<AbstractTask> history = taskManager.getHistory();
+
+        assertFalse(history.contains(task1));
+    }
+
+    private void testDeletingEpicAlsoDeleteSubtasksFromHistory(List<Epic> epics) {
+        Epic epic = epics.getFirst();
+        int epicId = epic.getId();
+        List<Subtask> epicSubtasks = taskManager.getEpicSubtasks(epicId);
+
+        taskManager.deleteEpic(epicId);
+
+        List<AbstractTask> history = taskManager.getHistory();
+
+        assertFalse(history.contains(epic));
+        for (Subtask epicSubtask : epicSubtasks) {
+            assertFalse(history.contains(epicSubtask));
+        }
+    }
+
+    private void testHistoryTasksAreUnique() {
+        List<AbstractTask> history = taskManager.getHistory();
+        List<AbstractTask> uniqueTasks = history.stream().distinct().toList();
+        assertEquals(uniqueTasks.size(), history.size());
     }
 }
 

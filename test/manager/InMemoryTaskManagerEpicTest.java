@@ -1,4 +1,4 @@
-package test.project.manager;
+package manager;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -20,7 +20,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-public class InMemoryTaskManagerEpicTest {
+class InMemoryTaskManagerEpicTest {
     TaskManager taskManager;
 
     String name = "Первый эпик";
@@ -66,7 +66,7 @@ public class InMemoryTaskManagerEpicTest {
         assertEquals(firstEpic.getDescription(), addedEpic.getDescription());
         assertEquals(firstEpic.getStatus(), addedEpic.getStatus());
         assertEquals(3, addedEpic.getId());
-        assertEquals(0, addedEpic.getSubTaskIds().size());
+        assertEquals(0, addedEpic.getSubtaskIds().size());
     }
 
     @Test

@@ -7,15 +7,15 @@ import java.util.Collections;
 import java.util.List;
 
 public class Epic extends AbstractTask {
-    private final List<Integer> subTaskIds;
+    private final List<Integer> subtaskIds;
 
     private Epic(Builder builder) {
         super(builder);
-        this.subTaskIds = builder.subTaskIds;
+        this.subtaskIds = builder.subtaskIds;
     }
 
-    public List<Integer> getSubTaskIds() {
-        return Collections.unmodifiableList(subTaskIds);
+    public List<Integer> getSubtaskIds() {
+        return Collections.unmodifiableList(subtaskIds);
     }
 
     @Override
@@ -25,30 +25,30 @@ public class Epic extends AbstractTask {
                 ", name='" + getName() + '\'' +
                 ", description='" + getDescription() + '\'' +
                 ", status=" + getStatus() +
-                ", subtaskIds=" + subTaskIds +
+                ", subtaskIds=" + subtaskIds +
                 '}';
     }
 
     public static class Builder extends AbstractTaskBuilder<Epic, Builder> {
-        private List<Integer> subTaskIds;
+        private List<Integer> subtaskIds;
 
         public Builder fromEpic(Epic epic) {
             copyFromAbstractTask(epic);
-            this.subTaskIds = new ArrayList<>(epic.getSubTaskIds());
+            this.subtaskIds = new ArrayList<>(epic.getSubtaskIds());
             return self();
         }
 
-        public Builder fromEpicWithNewSubtasks(Epic epic, List<Integer> subTaskIds) {
+        public Builder fromEpicWithNewSubtasks(Epic epic, List<Integer> subtaskIds) {
             copyFromAbstractTask(epic);
-            this.subTaskIds = subTaskIds;
+            this.subtaskIds = subtaskIds;
             return self();
         }
 
         @Override
         public Epic build() {
             validate();
-            if (subTaskIds == null) {
-                subTaskIds = new ArrayList<>();
+            if (subtaskIds == null) {
+                subtaskIds = new ArrayList<>();
             }
             return new Epic(this);
         }

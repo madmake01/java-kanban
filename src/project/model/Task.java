@@ -4,7 +4,7 @@ import project.util.AbstractTaskBuilder;
 
 public class Task extends AbstractTask {
 
-    private Task(AbstractTaskBuilder builder) {
+    private Task(Builder builder) {
         super(builder);
     }
 

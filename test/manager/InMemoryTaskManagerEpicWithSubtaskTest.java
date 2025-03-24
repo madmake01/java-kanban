@@ -1,4 +1,4 @@
-package test.project.manager;
+package manager;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -18,7 +18,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-public class InMemoryTaskManagerEpicWithSubtaskTest {
+class InMemoryTaskManagerEpicWithSubtaskTest {
     TaskManager taskManager;
 
     String nameEpicFirst = "Первый эпик";
@@ -60,7 +60,7 @@ public class InMemoryTaskManagerEpicWithSubtaskTest {
 
         Epic updatedEpic = taskManager.getEpicWithNotification(1);
         assertEquals(Status.DONE, updatedEpic.getStatus(), "Wrong subtask status");
-        assertEquals(1, updatedEpic.getSubTaskIds().size(), "Wrong subtask id list");
+        assertEquals(1, updatedEpic.getSubtaskIds().size(), "Wrong subtask id list");
 
     }
 
@@ -70,15 +70,16 @@ public class InMemoryTaskManagerEpicWithSubtaskTest {
                 .fromSubtask(oneFirstSubtask)
                 .setId(2)
                 .build();
+        int epicId = firstEpic.getId();
         assertThrows(EntityAlreadyExistsException.class, () -> taskManager.addSubtask(subtaskWithWrongId,
-                firstEpic.getId()));
+                epicId));
 
         Subtask subtaskWithNonDefaultEpicId = new Subtask.Builder()
                 .fromSubtask(oneFirstSubtask)
                 .setEpicId(1)
                 .build();
         assertThrows(EntityAlreadyExistsException.class, () -> taskManager.addSubtask(subtaskWithNonDefaultEpicId,
-                firstEpic.getId()));
+                epicId));
     }
 
     @Test
@@ -147,6 +148,6 @@ public class InMemoryTaskManagerEpicWithSubtaskTest {
         Epic afterDeletedSubtask = taskManager.getEpicWithNotification(1);
 
         assertEquals(Status.NEW, afterDeletedSubtask.getStatus(), "Wrong subtask status");
-        assertEquals(0, afterDeletedSubtask.getSubTaskIds().size(), "Wrong subtask id list");
+        assertEquals(0, afterDeletedSubtask.getSubtaskIds().size(), "Wrong subtask id list");
     }
 }
