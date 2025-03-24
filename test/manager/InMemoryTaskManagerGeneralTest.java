@@ -219,10 +219,6 @@ class InMemoryTaskManagerGeneralTest {
 
     @Test
     void testUserCaseSprint6() {
-        extracted();
-    }
-
-    private void extracted() {
         List<Epic> epics = taskManager.getEpics();
         List<Subtask> subtasks = taskManager.getSubtasks();
         List<Task> tasks = taskManager.getTasks();
@@ -254,7 +250,6 @@ class InMemoryTaskManagerGeneralTest {
         testDeletingEpicAlsoDeleteSubtasksFromHistory(epics);
 
         deletedTaskDeletesFromHistory(tasks);
-
     }
 
     private void deletedTaskDeletesFromHistory(List<Task> tasks) {

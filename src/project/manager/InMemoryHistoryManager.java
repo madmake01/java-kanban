@@ -19,14 +19,7 @@ public class InMemoryHistoryManager implements HistoryManager {
         remove(taskId);
 
         Node node = new Node(null, task, null);
-        if (head == null) {
-            head = node;
-        } else {
-            node.prev = tail;
-            tail.next = node;
-        }
-
-        tail = node;
+        linkLast(node);
 
         links.put(taskId, node);
     }
@@ -53,6 +46,17 @@ public class InMemoryHistoryManager implements HistoryManager {
         }
     }
 
+    private void linkLast(Node node) {
+        if (head == null) {
+            head = node;
+        } else {
+            node.prev = tail;
+            tail.next = node;
+        }
+
+        tail = node;
+    }
+
     private void removeNode(Node node) {
         Node prev = node.prev;
         Node next = node.next;
@@ -74,9 +78,9 @@ public class InMemoryHistoryManager implements HistoryManager {
     }
 
     private static class Node {
-        AbstractTask item;
-        Node next;
-        Node prev;
+        private final AbstractTask item;
+        private Node next;
+        private Node prev;
 
         Node(Node prev, AbstractTask element, Node next) {
             this.item = element;
