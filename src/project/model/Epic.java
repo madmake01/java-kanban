@@ -38,8 +38,7 @@ public class Epic extends AbstractTask {
             return self();
         }
 
-        public Builder fromEpicWithNewSubtasks(Epic epic, List<Integer> subtaskIds) {
-            copyFromAbstractTask(epic);
+        public Builder setSubtaskIds(List<Integer> subtaskIds) {
             this.subtaskIds = subtaskIds;
             return self();
         }

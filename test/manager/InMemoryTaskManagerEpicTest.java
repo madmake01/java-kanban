@@ -81,7 +81,8 @@ class InMemoryTaskManagerEpicTest {
     @Test
     void addIncorrectEpicNotEmptySubtaskList() {
         Epic wrongEpic = new Epic.Builder()
-                .fromEpicWithNewSubtasks(firstEpic, new ArrayList<>(List.of(1, 3, 5)))
+                .fromEpic(firstEpic)
+                .setSubtaskIds(new ArrayList<>(List.of(1, 3, 5)))
                 .build();
         assertThrows(InvalidParameterException.class, () -> taskManager.addEpic(wrongEpic));
     }

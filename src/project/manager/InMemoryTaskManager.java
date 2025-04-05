@@ -65,7 +65,8 @@ public class InMemoryTaskManager implements TaskManager {
         subtasks.clear();
         for (Epic epic : epics.values()) {
             Epic emptyEpic = new Epic.Builder()
-                    .fromEpicWithNewSubtasks(epic, new ArrayList<>())
+                    .fromEpic(epic)
+                    .setSubtaskIds(new ArrayList<>())
                     .build();
 
             updateEpic(emptyEpic);
@@ -140,7 +141,8 @@ public class InMemoryTaskManager implements TaskManager {
         updatedSubtaskIds.add(subtaskId);
 
         Epic updatedEpic = new Epic.Builder()
-                .fromEpicWithNewSubtasks(epic, updatedSubtaskIds)
+                .fromEpic(epic)
+                .setSubtaskIds(updatedSubtaskIds)
                 .build();
         updateEpic(updatedEpic);
 
@@ -222,7 +224,8 @@ public class InMemoryTaskManager implements TaskManager {
         updatedSubtaskIds.remove((Integer) id);
 
         Epic updatedEpic = new Epic.Builder()
-                .fromEpicWithNewSubtasks(epic, updatedSubtaskIds)
+                .fromEpic(epic)
+                .setSubtaskIds(updatedSubtaskIds)
                 .build();
 
         updateEpic(updatedEpic);
