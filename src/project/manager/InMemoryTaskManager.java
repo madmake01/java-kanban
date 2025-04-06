@@ -9,29 +9,37 @@ import project.model.Task;
 import project.util.TaskValidator;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static project.exception.TaskExceptionMessage.EPIC_DOES_NOT_EXIST;
 import static project.exception.TaskExceptionMessage.SUBTASK_DOES_NOT_EXIST;
+import static project.exception.TaskExceptionMessage.TASKS_CANT_HAVE_SAME_ID;
 import static project.exception.TaskExceptionMessage.TASK_DOES_NOT_EXIST;
 
 public class InMemoryTaskManager implements TaskManager {
     private final TaskValidator validator;
-    private final Map<Integer, Task> tasks;
-    private final Map<Integer, Epic> epics;
-    private final Map<Integer, Subtask> subtasks;
+    private final Map<Integer, Task> tasks = new HashMap<>();
+    private final Map<Integer, Epic> epics = new HashMap<>();
+    private final Map<Integer, Subtask> subtasks = new HashMap<>();
     private final HistoryManager historyManager;
     private int nextId = 1;
 
     public InMemoryTaskManager(TaskValidator validator, HistoryManager historyManager) {
         this.validator = validator;
         this.historyManager = historyManager;
+    }
 
-        tasks = new HashMap<>();
-        epics = new HashMap<>();
-        subtasks = new HashMap<>();
+    public InMemoryTaskManager(TaskValidator validator, HistoryManager historyManager,
+                               List<AbstractTask> taskStorage) {
+        this.validator = validator;
+        this.historyManager = historyManager;
+
+        initialize(taskStorage);
     }
 
     @Override
@@ -93,7 +101,6 @@ public class InMemoryTaskManager implements TaskManager {
         addToHistoryManager(subtask);
         return subtask;
     }
-
 
     @Override
     public Task addTask(Task task) {
@@ -243,6 +250,15 @@ public class InMemoryTaskManager implements TaskManager {
         return historyManager.getDefaultHistory();
     }
 
+    protected List<List<AbstractTask>> getAllTasks() {
+        return List.of(
+                new ArrayList<>(tasks.values()),
+                new ArrayList<>(epics.values()),
+                new ArrayList<>(subtasks.values())
+        );
+    }
+
+
     private List<Subtask> getSubtasksFromIds(List<Integer> subtaskIds) {
         return subtaskIds.stream().map(this::getSubtaskById).toList();
     }
@@ -269,6 +285,28 @@ public class InMemoryTaskManager implements TaskManager {
 
     private int generateId() {
         return nextId++;
+    }
+
+    private void initialize(List<AbstractTask> taskStorage) {
+        Set<Integer> ids = new HashSet<>();
+
+        for (AbstractTask abstractTask : taskStorage) {
+            if (!ids.add(abstractTask.getId())) {
+                throw new IllegalStateException(TASKS_CANT_HAVE_SAME_ID);
+            }
+
+            switch (abstractTask) {
+                case Epic epic -> epics.put(epic.getId(), epic);
+
+                case Subtask subtask -> subtasks.put(subtask.getId(), subtask);
+
+                case Task task -> tasks.put(task.getId(), task);
+
+                default -> throw new IllegalArgumentException("Unknown task type: " + abstractTask.getClass());
+            }
+
+            nextId = ids.isEmpty() ? 1 : Collections.max(ids) + 1;
+        }
     }
 
     private Status calculateStatus(List<Integer> subtaskIds) {
