@@ -1,10 +1,9 @@
-package manager;
+package project.manager;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import project.enums.Status;
 import project.exception.NonexistentEntityException;
-import project.manager.TaskManager;
 import project.model.AbstractTask;
 import project.model.Epic;
 import project.model.Subtask;
@@ -32,8 +31,7 @@ class InMemoryTaskManagerEpicTest {
 
     @BeforeEach
     void setUp() {
-        Managers managers = new Managers();
-        taskManager = managers.getDefaultTaskManager();
+        taskManager = Managers.getDefaultTaskManager();
 
         Task firstTask = new Task.Builder()
                 .setName("Первая задача")

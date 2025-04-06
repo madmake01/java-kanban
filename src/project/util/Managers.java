@@ -1,40 +1,32 @@
 package project.util;
 
+import project.manager.FileBackedTaskManager;
 import project.manager.HistoryManager;
 import project.manager.InMemoryHistoryManager;
 import project.manager.InMemoryTaskManager;
 import project.manager.TaskManager;
+import project.model.AbstractTask;
+
+import java.io.File;
+import java.util.List;
 
 public class Managers {
+    private static final TaskValidator validator = new TaskValidator();
 
-    private TaskManager defaultTaskManager;
-    private HistoryManager defaultHistoryManager;
-
-    public Managers() {
-        initializeDefaultTaskManager();
+    private Managers() {
     }
 
-    public static Managers getInstance() {
-        return Holder.INSTANCE;
+    public static TaskManager getDefaultTaskManager() {
+        return new InMemoryTaskManager(validator, getDefaultHistoryManager());
     }
 
-    public TaskManager getDefaultTaskManager() {
-        return defaultTaskManager;
+    public static HistoryManager getDefaultHistoryManager() {
+        return new InMemoryHistoryManager();
     }
 
-    public HistoryManager getDefaultHistoryManager() {
-        return defaultHistoryManager;
+    public static FileBackedTaskManager loadFromFile(File file) {
+        List<AbstractTask> taskStorage = TaskFileRepository.getTasks(file);
+        return new FileBackedTaskManager(validator, new InMemoryHistoryManager(), file, taskStorage);
     }
 
-    private void initializeDefaultTaskManager() {
-        TaskValidator validator = new TaskValidator();
-
-        this.defaultHistoryManager = new InMemoryHistoryManager();
-        this.defaultTaskManager = new InMemoryTaskManager(validator, defaultHistoryManager);
-
-    }
-
-    private static class Holder {
-        private static final Managers INSTANCE = new Managers();
-    }
 }

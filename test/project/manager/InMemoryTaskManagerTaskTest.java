@@ -1,12 +1,10 @@
-package manager;
+package project.manager;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import project.enums.Status;
 import project.exception.EntityAlreadyExistsException;
 import project.exception.NonexistentEntityException;
-import project.manager.HistoryManager;
-import project.manager.TaskManager;
 import project.model.AbstractTask;
 import project.model.Task;
 import project.util.Managers;
@@ -21,14 +19,11 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 class InMemoryTaskManagerTaskTest {
 
 
-    HistoryManager historyManager;
     TaskManager taskManager;
 
     @BeforeEach
     void setUp() {
-        Managers managers = new Managers();
-        historyManager = managers.getDefaultHistoryManager();
-        taskManager = managers.getDefaultTaskManager();
+        taskManager = Managers.getDefaultTaskManager();
 
         Task firstTask = new Task.Builder()
                 .setName("Первая задача")
@@ -113,7 +108,7 @@ class InMemoryTaskManagerTaskTest {
         assertEquals(expected.getStatus(), task.getStatus(), "Wrong task status");
         assertEquals(expected.getDescription(), task.getDescription(), "Wrong task description");
 
-        List<AbstractTask> historyTasks = historyManager.getDefaultHistory();
+        List<AbstractTask> historyTasks = taskManager.getHistory();
         assertEquals(1, historyTasks.size(), "History tasks should have 1 task");
         AbstractTask historyTask = historyTasks.getFirst();
         assertEquals(expected.getId(), historyTask.getId(), "Id of history task should be the 1");
