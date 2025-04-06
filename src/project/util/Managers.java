@@ -29,4 +29,7 @@ public class Managers {
         return new FileBackedTaskManager(validator, new InMemoryHistoryManager(), file, taskStorage);
     }
 
+    public static FileBackedTaskManager getDefaultFileBackedTaskManager(File file) {
+        return new FileBackedTaskManager(validator, getDefaultHistoryManager(), file);
+    }
 }
