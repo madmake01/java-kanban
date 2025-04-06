@@ -2,11 +2,11 @@ package project.manager;
 
 import org.junit.jupiter.api.Test;
 import project.enums.Status;
+import project.exception.ManagerSaveException;
 import project.model.Epic;
 import project.model.Subtask;
 import project.model.Task;
 import project.util.Managers;
-import project.util.TaskFileRepository;
 
 import java.io.File;
 import java.io.IOException;
@@ -16,7 +16,9 @@ import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static project.util.TaskFileRepository.CSV_HEADER;
 
 class FileBackedTaskManagerTest {
 
@@ -25,7 +27,6 @@ class FileBackedTaskManagerTest {
 
         File tempFile = File.createTempFile("test_tasks", ".csv");
         tempFile.deleteOnExit();
-        System.out.println("Temporary file path: " + tempFile.getAbsolutePath());
 
         FileBackedTaskManager manager = Managers.getDefaultFileBackedTaskManager(tempFile);
 
@@ -80,7 +81,12 @@ class FileBackedTaskManagerTest {
     @Test
     void loadFromEmptyFileShouldCreateEmptyManager() throws IOException {
         File tempFile = File.createTempFile("empty", ".csv");
-        tempFile.deleteOnExit();
+
+        Files.writeString(tempFile.toPath(), "wrong header");
+
+        assertThrows(ManagerSaveException.class, () ->
+                Managers.loadFromFile(tempFile), "Exception expected caused by wrong header");
+        Files.writeString(tempFile.toPath(), CSV_HEADER);
 
         FileBackedTaskManager manager = Managers.loadFromFile(tempFile);
 
@@ -113,7 +119,7 @@ class FileBackedTaskManagerTest {
         try (Stream<String> lines = Files.lines(tempFile.toPath())) {
             List<String> list = lines.toList();
             assertEquals(1, list.size(), "File should contain only one line (the header)");
-            assertEquals(TaskFileRepository.CSV_HEADER, list.getFirst(), "File header should match the expected CSV header");
+            assertEquals(CSV_HEADER, list.getFirst(), "File header should match the expected CSV header");
         }
     }
 }

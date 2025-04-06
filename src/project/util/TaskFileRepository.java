@@ -16,6 +16,7 @@ import java.util.List;
 
 import static project.exception.TaskExceptionMessage.ERROR_READING_FILE;
 import static project.exception.TaskExceptionMessage.ERROR_SAVING_DATA;
+import static project.exception.TaskExceptionMessage.FILE_SHOULD_START_WITH;
 
 public class TaskFileRepository {
     public static final String CSV_HEADER = "id,type,name,status,description,additional";
@@ -51,6 +52,8 @@ public class TaskFileRepository {
 
             if (line != null && line.trim().equals(CSV_HEADER)) {
                 line = reader.readLine();
+            } else {
+                throw new ManagerSaveException(FILE_SHOULD_START_WITH + CSV_HEADER);
             }
 
             while (line != null && !line.isEmpty()) {
