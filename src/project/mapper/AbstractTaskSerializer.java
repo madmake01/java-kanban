@@ -16,12 +16,12 @@ import java.util.function.Supplier;
 
 public class AbstractTaskSerializer {
 
-    public static final int TASK_TYPE = 0;
-    public static final int ID_INDEX = 1;
-    public static final int NAME_INDEX = 2;
-    public static final int DESCRIPTION_INDEX = 3;
-    public static final int STATUS_INDEX = 4;
-    public static final int ADDITIONAL_INFO = 5;
+    private static final int ID_INDEX = 0;
+    private static final int TASK_TYPE = 1;
+    private static final int NAME_INDEX = 2;
+    private static final int DESCRIPTION_INDEX = 3;
+    private static final int STATUS_INDEX = 4;
+    private static final int ADDITIONAL_INFO = 5;
 
     private static final String FIELD_DELIMITER = ",";
 
@@ -104,8 +104,8 @@ public class AbstractTaskSerializer {
     private static List<String> extractBasicFields(AbstractTask task) {
         List<String> fields = new ArrayList<>();
 
-        fields.add(TASK_TYPE, task.getClass().getSimpleName());
         fields.add(ID_INDEX, String.valueOf(task.getId()));
+        fields.add(TASK_TYPE, task.getClass().getSimpleName());
         fields.add(NAME_INDEX, task.getName());
         fields.add(DESCRIPTION_INDEX, task.getDescription());
         fields.add(STATUS_INDEX, task.getStatus().toString());

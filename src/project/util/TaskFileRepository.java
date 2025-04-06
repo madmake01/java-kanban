@@ -18,6 +18,7 @@ import static project.exception.TaskExceptionMessage.ERROR_READING_FILE;
 import static project.exception.TaskExceptionMessage.ERROR_SAVING_DATA;
 
 public class TaskFileRepository {
+    public static final String CSV_HEADER = "id,type,name,status,description,additional";
 
     private TaskFileRepository() {
     }
@@ -27,11 +28,13 @@ public class TaskFileRepository {
                 StandardOpenOption.CREATE,
                 StandardOpenOption.TRUNCATE_EXISTING)) {
 
+            writer.write(CSV_HEADER);
+
             for (List<AbstractTask> list : taskList) {
                 for (AbstractTask task : list) {
                     String serializedTask = AbstractTaskSerializer.serialize(task);
-                    writer.write(serializedTask);
                     writer.newLine();
+                    writer.write(serializedTask);
                 }
             }
 
@@ -44,9 +47,15 @@ public class TaskFileRepository {
         try (BufferedReader reader = Files.newBufferedReader(file.toPath(), StandardCharsets.UTF_8)) {
             List<AbstractTask> list = new ArrayList<>();
 
-            String line;
-            while ((line = reader.readLine()) != null) {
+            String line = reader.readLine();
+
+            if (line != null && line.trim().equals(CSV_HEADER)) {
+                line = reader.readLine();
+            }
+
+            while (line != null && !line.isEmpty()) {
                 list.add(AbstractTaskSerializer.deserialize(line));
+                line = reader.readLine();
             }
 
             return list;

@@ -30,7 +30,7 @@ class AbstractTaskSerializerTest {
 
         String serialized = AbstractTaskSerializer.serialize(task);
 
-        String expected = String.format("Task,%d,%s,%s,%s", id, name, description, status);
+        String expected = String.format("%d,Task,%s,%s,%s", id, name, description, status);
         assertEquals(expected, serialized);
     }
 
@@ -41,7 +41,7 @@ class AbstractTaskSerializerTest {
         String description = "description";
         Status status = Status.IN_PROGRESS;
 
-        String serialized = String.format("Task,%d,%s,%s,%s", id, name, description, status);
+        String serialized = String.format("%d,Task,%s,%s,%s", id, name, description, status);
 
         AbstractTask deserialized = AbstractTaskSerializer.deserialize(serialized);
 
@@ -71,14 +71,14 @@ class AbstractTaskSerializerTest {
                 .build();
 
         String serialized = AbstractTaskSerializer.serialize(epic);
-        String expected = String.format("Epic,%d,%s,%s,%s,10,20,30", id, name, description, status);
+        String expected = String.format("%d,Epic,%s,%s,%s,10,20,30", id, name, description, status);
 
         assertEquals(expected, serialized);
     }
 
     @Test
     void deserializeEpic() {
-        String serialized = "Epic,1,epic name,epic description,NEW,10,20,30";
+        String serialized = "1,Epic,epic name,epic description,NEW,10,20,30";
 
         AbstractTask deserialized = AbstractTaskSerializer.deserialize(serialized);
         assertInstanceOf(Epic.class, deserialized);
@@ -108,14 +108,14 @@ class AbstractTaskSerializerTest {
                 .build();
 
         String serialized = AbstractTaskSerializer.serialize(subtask);
-        String expected = String.format("Subtask,%d,%s,%s,%s,%d", id, name, description, status, epicId);
+        String expected = String.format("%d,Subtask,%s,%s,%s,%d", id, name, description, status, epicId);
 
         assertEquals(expected, serialized);
     }
 
     @Test
     void deserializeSubtask() {
-        String serialized = "Subtask,2,subtask name,subtask description,DONE,1";
+        String serialized = "2,Subtask,subtask name,subtask description,DONE,1";
 
         AbstractTask deserialized = AbstractTaskSerializer.deserialize(serialized);
         assertInstanceOf(Subtask.class, deserialized);
