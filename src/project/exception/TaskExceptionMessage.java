@@ -13,6 +13,8 @@ public class TaskExceptionMessage {
     public static final String SUBTASK_SHOULD_HAVE_EQUAL_EPICS = "Subtasks should have equal epics";
 
     public static final String ERROR_SAVING_DATA = "Error saving data";
+    public static final String ERROR_READING_FILE = "Error reading file";
+    public static final String TASKS_CANT_HAVE_SAME_ID = "Tasks cannot have the same id";
 
     private TaskExceptionMessage() {
     }
