@@ -105,6 +105,11 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         return deletedSubtask;
     }
 
+    public static FileBackedTaskManager loadFromFile(File file) {
+        List<AbstractTask> taskStorage = TaskFileRepository.getTasks(file);
+        return new FileBackedTaskManager(new TaskValidator(), new InMemoryHistoryManager(), file, taskStorage);
+    }
+
     private void save() {
         TaskFileRepository.saveTasks(file, getAllTasks());
     }

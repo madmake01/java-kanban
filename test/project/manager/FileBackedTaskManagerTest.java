@@ -6,7 +6,7 @@ import project.exception.ManagerSaveException;
 import project.model.Epic;
 import project.model.Subtask;
 import project.model.Task;
-import project.util.Managers;
+import project.util.TaskValidator;
 
 import java.io.File;
 import java.io.IOException;
@@ -28,7 +28,7 @@ class FileBackedTaskManagerTest {
         File tempFile = File.createTempFile("test_tasks", ".csv");
         tempFile.deleteOnExit();
 
-        FileBackedTaskManager manager = Managers.getDefaultFileBackedTaskManager(tempFile);
+        FileBackedTaskManager manager = new FileBackedTaskManager(new TaskValidator(), new InMemoryHistoryManager(), tempFile);
 
         Epic epicToAdd = new Epic.Builder()
                 .setName("Epic")
@@ -50,7 +50,7 @@ class FileBackedTaskManagerTest {
                 .build();
         Task savedTask = manager.addTask(taskToAdd);
 
-        FileBackedTaskManager loadedManager = Managers.loadFromFile(tempFile);
+        FileBackedTaskManager loadedManager = FileBackedTaskManager.loadFromFile(tempFile);
 
         List<Epic> loadedEpics = loadedManager.getEpics();
         assertEquals(1, loadedEpics.size(), "There should be exactly one epic loaded");
@@ -85,10 +85,10 @@ class FileBackedTaskManagerTest {
         Files.writeString(tempFile.toPath(), "wrong header");
 
         assertThrows(ManagerSaveException.class, () ->
-                Managers.loadFromFile(tempFile), "Exception expected caused by wrong header");
+                FileBackedTaskManager.loadFromFile(tempFile), "Exception expected caused by wrong header");
         Files.writeString(tempFile.toPath(), CSV_HEADER);
 
-        FileBackedTaskManager manager = Managers.loadFromFile(tempFile);
+        FileBackedTaskManager manager = FileBackedTaskManager.loadFromFile(tempFile);
 
         assertNotNull(manager, "Manager should not be null");
         assertEquals(0, manager.getTasks().size(), "Tasks should be empty");
@@ -102,13 +102,13 @@ class FileBackedTaskManagerTest {
         File tempFile = File.createTempFile("empty_save", ".csv");
         tempFile.deleteOnExit();
 
-        FileBackedTaskManager manager = Managers.getDefaultFileBackedTaskManager(tempFile);
+        FileBackedTaskManager manager = new FileBackedTaskManager(new TaskValidator(), new InMemoryHistoryManager(), tempFile);
         manager.deleteSubtasks(); // method to force save
 
         assertTrue(tempFile.exists(), "File should exist");
         assertTrue(tempFile.length() > 0, "File should not be completely empty (should at least contain a header)");
 
-        FileBackedTaskManager loadedManager = Managers.loadFromFile(tempFile);
+        FileBackedTaskManager loadedManager = FileBackedTaskManager.loadFromFile(tempFile);
 
         assertNotNull(loadedManager, "Loaded manager should not be null");
         assertEquals(0, loadedManager.getTasks().size(), "Tasks should be empty");
