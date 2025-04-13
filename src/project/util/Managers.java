@@ -6,35 +6,16 @@ import project.manager.InMemoryTaskManager;
 import project.manager.TaskManager;
 
 public class Managers {
+    private static final TaskValidator validator = new TaskValidator();
 
-    private TaskManager defaultTaskManager;
-    private HistoryManager defaultHistoryManager;
-
-    public Managers() {
-        initializeDefaultTaskManager();
+    private Managers() {
     }
 
-    public static Managers getInstance() {
-        return Holder.INSTANCE;
+    public static TaskManager getDefaultTaskManager() {
+        return new InMemoryTaskManager(validator, getDefaultHistoryManager());
     }
 
-    public TaskManager getDefaultTaskManager() {
-        return defaultTaskManager;
-    }
-
-    public HistoryManager getDefaultHistoryManager() {
-        return defaultHistoryManager;
-    }
-
-    private void initializeDefaultTaskManager() {
-        TaskValidator validator = new TaskValidator();
-
-        this.defaultHistoryManager = new InMemoryHistoryManager();
-        this.defaultTaskManager = new InMemoryTaskManager(validator, defaultHistoryManager);
-
-    }
-
-    private static class Holder {
-        private static final Managers INSTANCE = new Managers();
+    public static HistoryManager getDefaultHistoryManager() {
+        return new InMemoryHistoryManager();
     }
 }
