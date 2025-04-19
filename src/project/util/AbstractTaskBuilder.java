@@ -3,6 +3,9 @@ package project.util;
 import project.enums.Status;
 import project.model.AbstractTask;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
+
 public abstract class AbstractTaskBuilder<T extends AbstractTask, B extends AbstractTaskBuilder<T, B>> {
     public static final int DEFAULT_ID = -1;
     public static final Status DEFAULT_STATUS = Status.NEW;
@@ -11,6 +14,8 @@ public abstract class AbstractTaskBuilder<T extends AbstractTask, B extends Abst
     private String name;
     private String description;
     private Status status = DEFAULT_STATUS;
+    private LocalDateTime startTime;
+    private Duration duration;
 
     public int getId() {
         return id;
@@ -48,6 +53,24 @@ public abstract class AbstractTaskBuilder<T extends AbstractTask, B extends Abst
         return self();
     }
 
+    public LocalDateTime getStartTime() {
+        return startTime;
+    }
+
+    public B setStartTime(LocalDateTime startTime) {
+        this.startTime = startTime;
+        return self();
+    }
+
+    public Duration getDuration() {
+        return duration;
+    }
+
+    public B setDuration(Duration duration) {
+        this.duration = duration;
+        return self();
+    }
+
     public abstract T build();
 
     protected void copyFromAbstractTask(AbstractTask abstractTask) {
@@ -55,6 +78,8 @@ public abstract class AbstractTaskBuilder<T extends AbstractTask, B extends Abst
         this.name = abstractTask.getName();
         this.description = abstractTask.getDescription();
         this.status = abstractTask.getStatus();
+        this.startTime = abstractTask.getStartTime().orElse(null);
+        this.duration = abstractTask.getDuration().orElse(null);
     }
 
     protected abstract B self();

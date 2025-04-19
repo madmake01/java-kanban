@@ -8,6 +8,8 @@ import project.model.Subtask;
 import project.model.Task;
 import project.util.TaskValidator;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -178,9 +180,15 @@ public class InMemoryTaskManager implements TaskManager {
 
         Status updatedStatus = calculateStatus(epic.getSubtaskIds());
 
+
+        TimeAggregate timeAggregate = aggregateTimeSummary(epic);
+
         Epic updatedEpic = new Epic.Builder()
                 .fromEpic(epic)
                 .setStatus(updatedStatus)
+                .setStartTime(timeAggregate.startTime)
+                .setDuration(timeAggregate.duration)
+                .setEndTime(timeAggregate.endTime)
                 .build();
         epics.put(epicId, updatedEpic);
         return updatedEpic;
@@ -340,5 +348,49 @@ public class InMemoryTaskManager implements TaskManager {
             throw new NonexistentEntityException(errorMessage + id);
         }
         return entity;
+    }
+
+    private TimeAggregate aggregateTimeSummary(Epic epic) {
+        List<Subtask> subtasksEpic = getSubtasksFromIds(epic.getSubtaskIds());
+
+        return subtasksEpic.stream().collect(TimeAggregate::new, TimeAggregate::accept, TimeAggregate::merge);
+    }
+
+    private static class TimeAggregate {
+        private LocalDateTime startTime;
+        private LocalDateTime endTime;
+        private Duration duration;
+
+        private void accept(Subtask subtask) {
+            subtask.getStartTime()
+                    .filter(t -> startTime == null || t.isBefore(startTime))
+                    .ifPresent(t -> startTime = t);
+
+            subtask.getEndTime()
+                    .filter(t -> endTime == null || t.isAfter(endTime))
+                    .ifPresent(t -> endTime = t);
+
+            subtask.getDuration()
+                    .map(d -> duration == null ? d : duration.plus(d))
+                    .ifPresent(d -> duration = d);
+        }
+
+        private void merge(TimeAggregate other) {
+            if (other.startTime != null && (startTime == null || other.startTime.isBefore(startTime))) {
+                startTime = other.startTime;
+            }
+
+            if (other.endTime != null && (endTime == null || other.endTime.isAfter(endTime))) {
+                endTime = other.endTime;
+            }
+
+            if (other.duration != null) {
+                if (duration == null) {
+                    duration = other.duration;
+                } else {
+                    duration = duration.plus(other.duration);
+                }
+            }
+        }
     }
 }
