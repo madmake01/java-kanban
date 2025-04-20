@@ -1,11 +1,12 @@
 package project.manager;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import project.enums.Status;
 import project.exception.ManagerSaveException;
 import project.model.Epic;
 import project.model.Subtask;
 import project.model.Task;
+import project.util.TaskUtility;
 import project.util.TaskValidator;
 
 import java.io.File;
@@ -14,112 +15,127 @@ import java.nio.file.Files;
 import java.util.List;
 import java.util.stream.Stream;
 
+import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static project.util.TaskFileRepository.CSV_HEADER;
 
-class FileBackedTaskManagerTest {
+class FileBackedTaskManagerTest extends TaskManagerTest<FileBackedTaskManager> {
 
-    @Test
-    void saveAndLoadFromFileShouldPreserveAllEntities() throws IOException {
+    File tempFile;
 
-        File tempFile = File.createTempFile("test_tasks", ".csv");
+    @BeforeEach
+    void setUp() throws IOException {
+        tempFile = File.createTempFile("test_tasks", ".csv");
         tempFile.deleteOnExit();
-
-        FileBackedTaskManager manager = new FileBackedTaskManager(new TaskValidator(), new InMemoryHistoryManager(), tempFile);
-
-        Epic epicToAdd = new Epic.Builder()
-                .setName("Epic")
-                .setDescription("Epic description")
-                .build();
-        Epic savedEpic = manager.addEpic(epicToAdd);
-
-        Subtask subtaskToAdd = new Subtask.Builder()
-                .setName("Subtask")
-                .setDescription("Subtask description")
-                .setStatus(Status.IN_PROGRESS)
-                .build();
-        Subtask savedSubtask = manager.addSubtask(subtaskToAdd, savedEpic.getId());
-
-        Task taskToAdd = new Task.Builder()
-                .setName("Task")
-                .setDescription("Task description")
-                .setStatus(Status.DONE)
-                .build();
-        Task savedTask = manager.addTask(taskToAdd);
-
-        FileBackedTaskManager loadedManager = FileBackedTaskManager.loadFromFile(tempFile);
-
-        List<Epic> loadedEpics = loadedManager.getEpics();
-        assertEquals(1, loadedEpics.size(), "There should be exactly one epic loaded");
-        Epic loadedEpic = loadedEpics.getFirst();
-        assertEquals(savedEpic.getId(), loadedEpic.getId(), "Epic ID should match");
-        assertEquals(savedEpic.getName(), loadedEpic.getName(), "Epic name should match");
-        assertEquals(savedEpic.getDescription(), loadedEpic.getDescription(), "Epic description should match");
-        assertEquals(savedSubtask.getStatus(), loadedEpic.getStatus(), "Epic status should match subtask status");
-
-        List<Subtask> loadedSubtasks = loadedManager.getSubtasks();
-        assertEquals(1, loadedSubtasks.size(), "There should be exactly one subtask loaded");
-        Subtask loadedSubtask = loadedSubtasks.getFirst();
-        assertEquals(savedSubtask.getId(), loadedSubtask.getId(), "Subtask ID should match");
-        assertEquals(savedSubtask.getName(), loadedSubtask.getName(), "Subtask name should match");
-        assertEquals(savedSubtask.getDescription(), loadedSubtask.getDescription(), "Subtask description should match");
-        assertEquals(savedSubtask.getStatus(), loadedSubtask.getStatus(), "Subtask status should match");
-        assertEquals(savedSubtask.getEpicId(), loadedSubtask.getEpicId(), "Subtask epic ID should match");
-
-        List<Task> loadedTasks = loadedManager.getTasks();
-        assertEquals(1, loadedTasks.size(), "There should be exactly one task loaded");
-        Task loadedTask = loadedTasks.getFirst();
-        assertEquals(savedTask.getId(), loadedTask.getId(), "Task ID should match");
-        assertEquals(savedTask.getName(), loadedTask.getName(), "Task name should match");
-        assertEquals(savedTask.getDescription(), loadedTask.getDescription(), "Task description should match");
-        assertEquals(savedTask.getStatus(), loadedTask.getStatus(), "Task status should match");
+        taskManager = new FileBackedTaskManager(new TaskValidator(), new InMemoryHistoryManager(), tempFile);
     }
 
     @Test
-    void loadFromEmptyFileShouldCreateEmptyManager() throws IOException {
-        File tempFile = File.createTempFile("empty", ".csv");
+    void shouldPreserveEpicOnLoad() {
+        Epic savedEpic = taskManager.addEpic(TaskUtility.createEpic());
+        FileBackedTaskManager loadedManager = FileBackedTaskManager.loadFromFile(tempFile);
+        Epic loadedEpic = loadedManager.getEpics().getFirst();
 
+        assertAll("Epic properties should be preserved",
+                () -> assertEquals(savedEpic.getId(), loadedEpic.getId()),
+                () -> assertEquals(savedEpic.getName(), loadedEpic.getName()),
+                () -> assertEquals(savedEpic.getDescription(), loadedEpic.getDescription())
+        );
+    }
+
+    @Test
+    void shouldPreserveSubtaskOnLoad() {
+        Epic epic = taskManager.addEpic(TaskUtility.createEpic());
+        Subtask savedSubtask = taskManager.addSubtask(TaskUtility.createSubtask(), epic.getId());
+
+        FileBackedTaskManager loadedManager = FileBackedTaskManager.loadFromFile(tempFile);
+        Subtask loadedSubtask = loadedManager.getSubtasks().getFirst();
+
+        TaskUtility.assertAbstractTaskEquals(savedSubtask, loadedSubtask);
+    }
+
+    @Test
+    void shouldPreserveTaskOnLoad() {
+        Task savedTask = taskManager.addTask(TaskUtility.createTask());
+
+        FileBackedTaskManager loadedManager = FileBackedTaskManager.loadFromFile(tempFile);
+        Task loadedTask = loadedManager.getTasks().getFirst();
+
+        TaskUtility.assertAbstractTaskEquals(savedTask, loadedTask);
+    }
+
+    @Test
+    void shouldThrowExceptionForIncorrectHeader() throws IOException {
         Files.writeString(tempFile.toPath(), "wrong header");
+        assertThrows(ManagerSaveException.class, () -> FileBackedTaskManager.loadFromFile(tempFile));
+    }
 
-        assertThrows(ManagerSaveException.class, () ->
-                FileBackedTaskManager.loadFromFile(tempFile), "Exception expected caused by wrong header");
+    @Test
+    void shouldLoadEmptyManagerFromCorrectHeader() throws IOException {
         Files.writeString(tempFile.toPath(), CSV_HEADER);
-
         FileBackedTaskManager manager = FileBackedTaskManager.loadFromFile(tempFile);
 
-        assertNotNull(manager, "Manager should not be null");
-        assertEquals(0, manager.getTasks().size(), "Tasks should be empty");
-        assertEquals(0, manager.getEpics().size(), "Epics should be empty");
-        assertEquals(0, manager.getSubtasks().size(), "Subtasks should be empty");
-        assertEquals(0, manager.getHistory().size(), "History should be empty");
+        assertAll("All collections must be empty",
+                () -> assertNotNull(manager),
+                () -> assertTrue(manager.getTasks().isEmpty()),
+                () -> assertTrue(manager.getEpics().isEmpty()),
+                () -> assertTrue(manager.getSubtasks().isEmpty()),
+                () -> assertTrue(manager.getHistory().isEmpty())
+        );
     }
 
     @Test
-    void saveEmptyManagerShouldProduceNonCorruptedFile() throws IOException {
-        File tempFile = File.createTempFile("empty_save", ".csv");
-        tempFile.deleteOnExit();
-
+    void saveEmptyManagerShouldCreateFileWithOnlyHeader() throws IOException {
         FileBackedTaskManager manager = new FileBackedTaskManager(new TaskValidator(), new InMemoryHistoryManager(), tempFile);
-        manager.deleteSubtasks(); // method to force save
+        manager.deleteSubtasks(); // trigger save
 
-        assertTrue(tempFile.exists(), "File should exist");
-        assertTrue(tempFile.length() > 0, "File should not be completely empty (should at least contain a header)");
-
-        FileBackedTaskManager loadedManager = FileBackedTaskManager.loadFromFile(tempFile);
-
-        assertNotNull(loadedManager, "Loaded manager should not be null");
-        assertEquals(0, loadedManager.getTasks().size(), "Tasks should be empty");
-        assertEquals(0, loadedManager.getEpics().size(), "Epics should be empty");
-        assertEquals(0, loadedManager.getSubtasks().size(), "Subtasks should be empty");
-        assertEquals(0, loadedManager.getHistory().size(), "History should be empty");
+        assertTrue(tempFile.exists());
+        assertTrue(tempFile.length() > 0);
 
         try (Stream<String> lines = Files.lines(tempFile.toPath())) {
-            List<String> list = lines.toList();
-            assertEquals(1, list.size(), "File should contain only one line (the header)");
-            assertEquals(CSV_HEADER, list.getFirst(), "File header should match the expected CSV header");
+            List<String> content = lines.toList();
+            assertEquals(1, content.size());
+            assertEquals(CSV_HEADER, content.getFirst());
+        }
+    }
+
+    @Test
+    void shouldLoadEmptyManagerCorrectlyFromSavedEmptyFile() {
+        FileBackedTaskManager manager = new FileBackedTaskManager(new TaskValidator(), new InMemoryHistoryManager(), tempFile);
+        manager.deleteTasks();
+        manager.deleteEpics();
+        manager.deleteSubtasks();
+
+        FileBackedTaskManager loaded = FileBackedTaskManager.loadFromFile(tempFile);
+
+        assertAll("All entities and history must remain empty after loading",
+                () -> assertNotNull(loaded),
+                () -> assertTrue(loaded.getTasks().isEmpty()),
+                () -> assertTrue(loaded.getEpics().isEmpty()),
+                () -> assertTrue(loaded.getSubtasks().isEmpty()),
+                () -> assertTrue(loaded.getHistory().isEmpty())
+        );
+    }
+
+    @Test
+    void loadFromFile_shouldThrowOnMalformedLine() throws IOException {
+        Files.writeString(tempFile.toPath(), CSV_HEADER + "malformed,line");
+
+        assertThrows(ManagerSaveException.class, () -> FileBackedTaskManager.loadFromFile(tempFile));
+    }
+
+    @Test
+    void loadFromFile_shouldThrowOnUnreadableFile() throws IOException {
+        File unreadable = File.createTempFile("unreadable", ".csv");
+        unreadable.setReadable(false);
+
+        try {
+            assertThrows(ManagerSaveException.class, () -> FileBackedTaskManager.loadFromFile(unreadable));
+        } finally {
+            unreadable.delete();
         }
     }
 }
