@@ -18,6 +18,7 @@ public class TaskExceptionMessage {
     public static final String FILE_SHOULD_START_WITH = "File to parse should start with: ";
 
     public static final String TASKS_CANNOT_OVERLAP = "Tasks cannot overlap";
+
     private TaskExceptionMessage() {
     }
 }
