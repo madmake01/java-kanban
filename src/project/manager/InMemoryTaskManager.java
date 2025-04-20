@@ -2,7 +2,7 @@ package project.manager;
 
 import project.enums.Status;
 import project.exception.NonexistentEntityException;
-import project.exception.TaskIntersectionException;
+import project.exception.TaskOverlapException;
 import project.model.AbstractTask;
 import project.model.Epic;
 import project.model.Subtask;
@@ -23,8 +23,8 @@ import java.util.TreeSet;
 
 import static project.exception.TaskExceptionMessage.EPIC_DOES_NOT_EXIST;
 import static project.exception.TaskExceptionMessage.SUBTASK_DOES_NOT_EXIST;
+import static project.exception.TaskExceptionMessage.TASKS_CANNOT_OVERLAP;
 import static project.exception.TaskExceptionMessage.TASKS_CANT_HAVE_SAME_ID;
-import static project.exception.TaskExceptionMessage.TASKS_CANT_INTERSECT;
 import static project.exception.TaskExceptionMessage.TASK_DOES_NOT_EXIST;
 
 public class InMemoryTaskManager implements TaskManager {
@@ -72,20 +72,20 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public void deleteTasks() {
         tasks.clear();
-        deleteTasksOfExactTypes(Task.class);
+        deleteTasksFromPriorityList(Task.class);
     }
 
     @Override
     public void deleteEpics() {
         epics.clear();
         subtasks.clear();
-        deleteTasksOfExactTypes(Subtask.class);
+        deleteTasksFromPriorityList(Subtask.class);
     }
 
     @Override
     public void deleteSubtasks() {
         subtasks.clear();
-        deleteTasksOfExactTypes(Subtask.class);
+        deleteTasksFromPriorityList(Subtask.class);
         for (Epic epic : epics.values()) {
             Epic emptyEpic = new Epic.Builder()
                     .fromEpic(epic)
@@ -120,7 +120,7 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public Task addTask(Task task) {
         validator.validateNewTask(task);
-        isIntersect(task);
+        checkTaskOverlap(task);
         int taskId = generateId();
         Task newTask = new Task.Builder()
                 .fromTask(task)
@@ -147,7 +147,7 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public Subtask addSubtask(Subtask subtask, int epicId) {
         validator.validateNewSubTask(subtask);
-        isIntersect(subtask);
+        checkTaskOverlap(subtask);
         int subtaskId = generateId();
 
         Subtask newSubtask = new Subtask.Builder()
@@ -176,7 +176,7 @@ public class InMemoryTaskManager implements TaskManager {
     public Task updateTask(Task task) {
         int id = task.getId();
         Task oldTask = getTaskById(id);
-        isIntersect(task);
+        checkTaskOverlap(task);
         Task updatedTask = new Task.Builder()
                 .fromTask(task)
                 .build();
@@ -212,7 +212,7 @@ public class InMemoryTaskManager implements TaskManager {
         int subtaskId = subtask.getId();
         Subtask oldSubtask = getSubtaskById(subtaskId);
         validator.ensureSubtasksEpicsAreEqual(oldSubtask, subtask);
-        isIntersect(subtask);
+        checkTaskOverlap(subtask);
         Epic epic = getEpicById(subtask.getEpicId());
 
         Subtask updatedSubtask = new Subtask.Builder()
@@ -307,7 +307,7 @@ public class InMemoryTaskManager implements TaskManager {
         return false;
     }
 
-    private void isIntersect(AbstractTask task) {
+    private void checkTaskOverlap(AbstractTask task) {
         boolean anyMatch = prioritizedTasks.stream().anyMatch(prioritizedTask -> {
             if (prioritizedTask.equals(task)) {
                 return false;
@@ -315,7 +315,7 @@ public class InMemoryTaskManager implements TaskManager {
             return compareTaskTimeData(prioritizedTask, task);
         });
         if (anyMatch) {
-            throw new TaskIntersectionException(TASKS_CANT_INTERSECT);
+            throw new TaskOverlapException(TASKS_CANNOT_OVERLAP);
         }
     }
 
@@ -333,7 +333,7 @@ public class InMemoryTaskManager implements TaskManager {
         addToPriorityList(taskToAdd);
     }
 
-    private void deleteTasksOfExactTypes(Class<? extends AbstractTask> taskClass) {
+    private void deleteTasksFromPriorityList(Class<? extends AbstractTask> taskClass) {
         prioritizedTasks.removeIf(task -> task.getClass().equals(taskClass));
     }
 

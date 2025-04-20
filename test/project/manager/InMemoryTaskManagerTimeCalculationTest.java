@@ -2,7 +2,7 @@ package project.manager;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import project.exception.TaskIntersectionException;
+import project.exception.TaskOverlapException;
 import project.model.Epic;
 import project.model.Subtask;
 import project.model.Task;
@@ -372,7 +372,7 @@ class InMemoryTaskManagerTimeCalculationTest {
 
         taskManager.addSubtask(subtask1, epicId);
         assertThrows(
-                TaskIntersectionException.class,
+                TaskOverlapException.class,
                 () -> taskManager.addSubtask(subtask2, epicId)
         );
     }
