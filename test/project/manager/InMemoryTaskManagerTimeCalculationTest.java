@@ -2,6 +2,7 @@ package project.manager;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import project.exception.TaskIntersectionException;
 import project.model.Epic;
 import project.model.Subtask;
 import project.model.Task;
@@ -13,6 +14,7 @@ import java.time.LocalDateTime;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class InMemoryTaskManagerTimeCalculationTest {
@@ -300,44 +302,47 @@ class InMemoryTaskManagerTimeCalculationTest {
     }
 
     @Test
-    void epicTimeShouldRecalculateAfterAllSubtasksRemovedAndNewOnesAdded() {
+    void epicTimeShouldRecalculateAfterAllSubtasksRemovedAndNewOnesAddedWithoutIntersections() {
         Epic epic = new Epic.Builder()
                 .setName("Reused epic")
                 .setDescription("Testing re-addition")
                 .build();
         Epic addedEpic = taskManager.addEpic(epic);
+
         Subtask subtask1 = new Subtask.Builder()
                 .setName("Subtask 1")
                 .setDescription("First")
-                .setStartTime(LocalDateTime.of(2022, 5, 1, 8, 0))
+                .setStartTime(LocalDateTime.of(2025, 5, 1, 8, 0))
                 .setDuration(Duration.ofHours(2))
                 .build();
+
         Subtask subtask2 = new Subtask.Builder()
                 .setName("Subtask 2")
                 .setDescription("Second")
-                .setStartTime(LocalDateTime.of(2022, 5, 1, 11, 0))
+                .setStartTime(LocalDateTime.of(2025, 5, 1, 10, 0))
                 .setDuration(Duration.ofHours(1))
                 .build();
+
         Subtask subtask3 = new Subtask.Builder()
                 .setName("Subtask 3")
                 .setDescription("Third")
-                .setStartTime(LocalDateTime.of(2022, 5, 2, 9, 0))
+                .setStartTime(LocalDateTime.of(2025, 5, 2, 9, 0))
                 .setDuration(Duration.ofHours(4))
                 .build();
-
 
         Subtask a1 = taskManager.addSubtask(subtask1, addedEpic.getId());
         Subtask a2 = taskManager.addSubtask(subtask2, addedEpic.getId());
         taskManager.deleteSubtask(a1.getId());
         taskManager.deleteSubtask(a2.getId());
         taskManager.addSubtask(subtask3, addedEpic.getId());
+
         Epic updatedEpic = taskManager.getEpicWithNotification(addedEpic.getId());
 
         assertAll(
                 () -> assertTrue(updatedEpic.getStartTime().isPresent()),
-                () -> assertEquals(LocalDateTime.of(2022, 5, 2, 9, 0), updatedEpic.getStartTime().get()),
+                () -> assertEquals(LocalDateTime.of(2025, 5, 2, 9, 0), updatedEpic.getStartTime().get()),
                 () -> assertTrue(updatedEpic.getEndTime().isPresent()),
-                () -> assertEquals(LocalDateTime.of(2022, 5, 2, 13, 0), updatedEpic.getEndTime().get()),
+                () -> assertEquals(LocalDateTime.of(2025, 5, 2, 13, 0), updatedEpic.getEndTime().get()),
                 () -> assertTrue(updatedEpic.getDuration().isPresent()),
                 () -> assertEquals(Duration.ofHours(4), updatedEpic.getDuration().get())
         );
