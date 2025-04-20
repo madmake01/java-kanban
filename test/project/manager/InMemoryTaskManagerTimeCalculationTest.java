@@ -347,4 +347,34 @@ class InMemoryTaskManagerTimeCalculationTest {
                 () -> assertEquals(Duration.ofHours(4), updatedEpic.getDuration().get())
         );
     }
+
+
+    @Test
+    void shouldThrowExceptionWhenSubtasksIntersect() {
+        Epic epic = new Epic.Builder()
+                .setName("Conflicting epic")
+                .setDescription("Should fail on overlap")
+                .build();
+        Epic addedEpic = taskManager.addEpic(epic);
+        Subtask subtask1 = new Subtask.Builder()
+                .setName("Subtask 1")
+                .setDescription("First")
+                .setStartTime(LocalDateTime.of(2022, 5, 1, 8, 0))
+                .setDuration(Duration.ofHours(2))
+                .build();
+        Subtask subtask2 = new Subtask.Builder()
+                .setName("Subtask 2")
+                .setDescription("Conflicting")
+                .setStartTime(LocalDateTime.of(2022, 5, 1, 9, 0))
+                .setDuration(Duration.ofHours(1))
+                .build();
+        int epicId = addedEpic.getId();
+
+        taskManager.addSubtask(subtask1, epicId);
+        assertThrows(
+                TaskIntersectionException.class,
+                () -> taskManager.addSubtask(subtask2, epicId)
+        );
+    }
+
 }
