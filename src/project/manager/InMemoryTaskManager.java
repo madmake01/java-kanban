@@ -2,6 +2,7 @@ package project.manager;
 
 import project.enums.Status;
 import project.exception.NonexistentEntityException;
+import project.exception.TaskIntersectionException;
 import project.model.AbstractTask;
 import project.model.Epic;
 import project.model.Subtask;
@@ -16,11 +17,14 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
+import java.util.TreeSet;
 
 import static project.exception.TaskExceptionMessage.EPIC_DOES_NOT_EXIST;
 import static project.exception.TaskExceptionMessage.SUBTASK_DOES_NOT_EXIST;
 import static project.exception.TaskExceptionMessage.TASKS_CANT_HAVE_SAME_ID;
+import static project.exception.TaskExceptionMessage.TASKS_CANT_INTERSECT;
 import static project.exception.TaskExceptionMessage.TASK_DOES_NOT_EXIST;
 
 public class InMemoryTaskManager implements TaskManager {
@@ -28,6 +32,12 @@ public class InMemoryTaskManager implements TaskManager {
     private final Map<Integer, Task> tasks = new HashMap<>();
     private final Map<Integer, Epic> epics = new HashMap<>();
     private final Map<Integer, Subtask> subtasks = new HashMap<>();
+    private final Set<AbstractTask> prioritizedTasks = new TreeSet<>((o1, o2) -> {
+        if (o1.getStartTime().isEmpty() || o2.getStartTime().isEmpty()) {
+            throw new NonexistentEntityException("StartTime is null");
+        }
+        return o1.getStartTime().get().compareTo(o2.getStartTime().get());
+    });
     private final HistoryManager historyManager;
     private int nextId = 1;
 
@@ -62,17 +72,20 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public void deleteTasks() {
         tasks.clear();
+        deleteTasksOfExactTypes(Task.class);
     }
 
     @Override
     public void deleteEpics() {
         epics.clear();
         subtasks.clear();
+        deleteTasksOfExactTypes(Subtask.class);
     }
 
     @Override
     public void deleteSubtasks() {
         subtasks.clear();
+        deleteTasksOfExactTypes(Subtask.class);
         for (Epic epic : epics.values()) {
             Epic emptyEpic = new Epic.Builder()
                     .fromEpic(epic)
@@ -107,7 +120,7 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public Task addTask(Task task) {
         validator.validateNewTask(task);
-
+        isIntersect(task);
         int taskId = generateId();
         Task newTask = new Task.Builder()
                 .fromTask(task)
@@ -115,13 +128,13 @@ public class InMemoryTaskManager implements TaskManager {
                 .build();
 
         tasks.put(taskId, newTask);
+        addToPriorityList(newTask);
         return newTask;
     }
 
     @Override
     public Epic addEpic(Epic epic) {
         validator.validateNewEpic(epic);
-
         int epicId = generateId();
         Epic newEpic = new Epic.Builder()
                 .fromEpic(epic)
@@ -134,7 +147,7 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public Subtask addSubtask(Subtask subtask, int epicId) {
         validator.validateNewSubTask(subtask);
-
+        isIntersect(subtask);
         int subtaskId = generateId();
 
         Subtask newSubtask = new Subtask.Builder()
@@ -154,6 +167,7 @@ public class InMemoryTaskManager implements TaskManager {
                 .setSubtaskIds(updatedSubtaskIds)
                 .build();
         updateEpic(updatedEpic);
+        addToPriorityList(newSubtask);
 
         return newSubtask;
     }
@@ -161,18 +175,17 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public Task updateTask(Task task) {
         int id = task.getId();
-        getTaskById(id);
-
+        Task oldTask = getTaskById(id);
+        isIntersect(task);
         Task updatedTask = new Task.Builder()
                 .fromTask(task)
                 .build();
         tasks.put(id, updatedTask);
+        updatePriorityList(oldTask, updatedTask);
         return updatedTask;
     }
 
-    /*
-     все еще не защищена от того, чтобы тут передать эпик со случайным списком
-    */
+
     @Override
     public Epic updateEpic(Epic epic) {
         int epicId = epic.getId();
@@ -199,7 +212,7 @@ public class InMemoryTaskManager implements TaskManager {
         int subtaskId = subtask.getId();
         Subtask oldSubtask = getSubtaskById(subtaskId);
         validator.ensureSubtasksEpicsAreEqual(oldSubtask, subtask);
-
+        isIntersect(subtask);
         Epic epic = getEpicById(subtask.getEpicId());
 
         Subtask updatedSubtask = new Subtask.Builder()
@@ -207,13 +220,16 @@ public class InMemoryTaskManager implements TaskManager {
                 .build();
 
         subtasks.put(subtaskId, updatedSubtask);
+        updatePriorityList(oldSubtask, updatedSubtask);
         updateEpic(epic);
         return updatedSubtask;
     }
 
     @Override
     public Task deleteTask(int id) {
-        return removeEntityById(tasks, id, TASK_DOES_NOT_EXIST);
+        Task task = removeEntityById(tasks, id, TASK_DOES_NOT_EXIST);
+        deleteFromPriorityList(task);
+        return task;
     }
 
     @Override
@@ -231,7 +247,7 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public Subtask deleteSubtask(int id) {
         Subtask removedSubtask = removeEntityById(subtasks, id, SUBTASK_DOES_NOT_EXIST);
-
+        deleteFromPriorityList(removedSubtask);
         int subtaskEpicId = removedSubtask.getEpicId();
         Epic epic = getEpicById(subtaskEpicId);
 
@@ -258,12 +274,67 @@ public class InMemoryTaskManager implements TaskManager {
         return historyManager.getDefaultHistory();
     }
 
+    public List<AbstractTask> getPrioritizedTasks() {
+        return List.copyOf(prioritizedTasks);
+    }
+
     protected List<List<AbstractTask>> getAllTasks() {
         return List.of(
                 new ArrayList<>(tasks.values()),
                 new ArrayList<>(epics.values()),
                 new ArrayList<>(subtasks.values())
         );
+    }
+
+    private boolean compareTaskTimeData(AbstractTask firstTask, AbstractTask secondTask) {
+        Optional<LocalDateTime> firstStartTime = firstTask.getStartTime();
+        Optional<LocalDateTime> secondStartTime = secondTask.getStartTime();
+        Optional<LocalDateTime> firstEndTime = firstTask.getEndTime();
+        Optional<LocalDateTime> secondEndTime = secondTask.getEndTime();
+
+        if (firstStartTime.isPresent() && secondStartTime.isPresent()
+                && firstEndTime.isPresent() && secondEndTime.isPresent()) {
+
+            LocalDateTime start1 = firstStartTime.get();
+            LocalDateTime end1 = firstEndTime.get();
+            LocalDateTime start2 = secondStartTime.get();
+            LocalDateTime end2 = secondEndTime.get();
+
+            return start1.isBefore(end2) && start2.isBefore(end1);
+
+        }
+
+        return false;
+    }
+
+    private void isIntersect(AbstractTask task) {
+        boolean anyMatch = prioritizedTasks.stream().anyMatch(prioritizedTask -> {
+            if (prioritizedTask.equals(task)) {
+                return false;
+            }
+            return compareTaskTimeData(prioritizedTask, task);
+        });
+        if (anyMatch) {
+            throw new TaskIntersectionException(TASKS_CANT_INTERSECT);
+        }
+    }
+
+
+    private void addToPriorityList(AbstractTask task) {
+        task.getStartTime().ifPresent(st -> prioritizedTasks.add(task));
+    }
+
+    private void deleteFromPriorityList(AbstractTask task) {
+        task.getStartTime().ifPresent(st -> prioritizedTasks.remove(task));
+    }
+
+    private void updatePriorityList(AbstractTask taskToDelete, AbstractTask taskToAdd) {
+        deleteFromPriorityList(taskToDelete);
+        addToPriorityList(taskToAdd);
+    }
+
+    private void deleteTasksOfExactTypes(Class<? extends AbstractTask> taskClass) {
+        prioritizedTasks.removeIf(task -> task.getClass().equals(taskClass));
     }
 
 
@@ -306,15 +377,20 @@ public class InMemoryTaskManager implements TaskManager {
             switch (abstractTask) {
                 case Epic epic -> epics.put(epic.getId(), epic);
 
-                case Subtask subtask -> subtasks.put(subtask.getId(), subtask);
+                case Subtask subtask -> {
+                    subtasks.put(subtask.getId(), subtask);
+                    addToPriorityList(subtask);
+                }
 
-                case Task task -> tasks.put(task.getId(), task);
+                case Task task -> {
+                    tasks.put(task.getId(), task);
+                    addToPriorityList(task);
+                }
 
                 default -> throw new IllegalArgumentException("Unknown task type: " + abstractTask.getClass());
             }
-
-            nextId = ids.isEmpty() ? 1 : Collections.max(ids) + 1;
         }
+        nextId = ids.isEmpty() ? 1 : Collections.max(ids) + 1;
     }
 
     private Status calculateStatus(List<Integer> subtaskIds) {
