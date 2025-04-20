@@ -6,6 +6,7 @@ import project.model.AbstractTask;
 import project.model.Epic;
 import project.model.Subtask;
 import project.model.Task;
+import project.util.TaskUtility;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -132,106 +133,57 @@ class AbstractTaskSerializerTest {
 
     @Test
     void taskShouldPreserveFieldsAfterSerializationAndDeserialization() {
-        int id = 123;
-        String name = "test";
-        String description = "description";
-        Status status = Status.IN_PROGRESS;
-        LocalDateTime startTime = LocalDateTime.now();
-        Duration duration = Duration.ofHours(1);
         Task task = new Task.Builder()
-                .setId(id)
-                .setName(name)
-                .setDescription(description)
-                .setStatus(status)
-                .setStartTime(startTime)
-                .setDuration(duration)
+                .setId(123)
+                .setName("test")
+                .setDescription("description")
+                .setStatus(Status.IN_PROGRESS)
+                .setStartTime(LocalDateTime.now())
+                .setDuration(Duration.ofHours(1))
                 .build();
 
         String serialized = AbstractTaskSerializer.serialize(task);
-        AbstractTask deserializedAbstract = AbstractTaskSerializer.deserialize(serialized);
+        AbstractTask deserialized = AbstractTaskSerializer.deserialize(serialized);
 
-        assertInstanceOf(Task.class, deserializedAbstract);
-        Task deserializedTask = (Task) deserializedAbstract;
-
-        assertEquals(id, deserializedTask.getId());
-        assertEquals(name, deserializedTask.getName());
-        assertEquals(description, deserializedTask.getDescription());
-        assertEquals(status, deserializedTask.getStatus());
-        assertEquals(startTime, deserializedTask.getStartTime().get());
-        assertEquals(duration, deserializedTask.getDuration().get());
-        assertEquals(task.getEndTime(), deserializedTask.getEndTime());
+        assertInstanceOf(Task.class, deserialized);
+        TaskUtility.assertAbstractTaskEquals(task, deserialized);
     }
 
     @Test
     void subtaskShouldPreserveFieldsAfterSerializationAndDeserialization() {
-        int id = 456;
-        String name = "subtask-test";
-        String description = "subtask description";
-        Status status = Status.DONE;
-        LocalDateTime startTime = LocalDateTime.now();
-        Duration duration = Duration.ofMinutes(30);
-        Integer epicId = 123;
-
         Subtask subtask = new Subtask.Builder()
-                .setId(id)
-                .setName(name)
-                .setDescription(description)
-                .setStatus(status)
-                .setStartTime(startTime)
-                .setDuration(duration)
-                .setEpicId(epicId)
+                .setId(456)
+                .setName("subtask-test")
+                .setDescription("subtask description")
+                .setStatus(Status.DONE)
+                .setStartTime(LocalDateTime.now())
+                .setDuration(Duration.ofMinutes(30))
+                .setEpicId(123)
                 .build();
 
         String serialized = AbstractTaskSerializer.serialize(subtask);
-        AbstractTask deserializedAbstract = AbstractTaskSerializer.deserialize(serialized);
+        AbstractTask deserialized = AbstractTaskSerializer.deserialize(serialized);
 
-        assertInstanceOf(Subtask.class, deserializedAbstract);
-        Subtask deserializedSubtask = (Subtask) deserializedAbstract;
-
-        assertEquals(id, deserializedSubtask.getId());
-        assertEquals(name, deserializedSubtask.getName());
-        assertEquals(description, deserializedSubtask.getDescription());
-        assertEquals(status, deserializedSubtask.getStatus());
-        assertEquals(startTime, deserializedSubtask.getStartTime().get());
-        assertEquals(duration, deserializedSubtask.getDuration().get());
-        assertEquals(epicId, deserializedSubtask.getEpicId());
-        assertEquals(subtask.getEndTime(), deserializedSubtask.getEndTime());
+        assertInstanceOf(Subtask.class, deserialized);
+        TaskUtility.assertAbstractTaskEquals(subtask, deserialized);
     }
 
     @Test
     void epicShouldPreserveFieldsAfterSerializationAndDeserialization() {
-        int id = 789;
-        String name = "epic-test";
-        String description = "epic description";
-        Status status = Status.NEW;
-        LocalDateTime startTime = LocalDateTime.now();
-        Duration duration = Duration.ofHours(5);
-        List<Integer> subtaskIds = List.of(456, 457, 458);
-
         Epic epic = new Epic.Builder()
-                .setId(id)
-                .setName(name)
-                .setDescription(description)
-                .setStatus(status)
-                .setStartTime(startTime)
-                .setDuration(duration)
-                .setSubtaskIds(subtaskIds)
+                .setId(789)
+                .setName("epic-test")
+                .setDescription("epic description")
+                .setStatus(Status.NEW)
+                .setStartTime(LocalDateTime.now())
+                .setDuration(Duration.ofHours(5))
+                .setSubtaskIds(List.of(456, 457, 458))
                 .build();
 
         String serialized = AbstractTaskSerializer.serialize(epic);
-        AbstractTask deserializedAbstract = AbstractTaskSerializer.deserialize(serialized);
+        AbstractTask deserialized = AbstractTaskSerializer.deserialize(serialized);
 
-        assertInstanceOf(Epic.class, deserializedAbstract);
-        Epic deserializedEpic = (Epic) deserializedAbstract;
-
-        assertEquals(id, deserializedEpic.getId());
-        assertEquals(name, deserializedEpic.getName());
-        assertEquals(description, deserializedEpic.getDescription());
-        assertEquals(status, deserializedEpic.getStatus());
-        assertEquals(startTime, deserializedEpic.getStartTime().get());
-        assertEquals(duration, deserializedEpic.getDuration().get());
-        assertEquals(subtaskIds, deserializedEpic.getSubtaskIds());
-        assertEquals(epic.getEndTime(), deserializedEpic.getEndTime());
+        assertInstanceOf(Epic.class, deserialized);
+        TaskUtility.assertAbstractTaskEquals(epic, deserialized);
     }
-
 }

@@ -53,6 +53,10 @@ public class TaskUtility {
         List<Executable> checks = new ArrayList<>();
 
         checks.add(() -> assertEquals(
+                expected.getClass(),
+                actual.getClass(),
+                "Class should match"));
+        checks.add(() -> assertEquals(
                 expected.getId(),
                 actual.getId(),
                 "ID should match"
