@@ -93,6 +93,22 @@ public class TaskUtility {
                 actual.getEndTime(),
                 "End time should match"
         ));
+
+        if (expected instanceof Subtask expectedSubtask && actual instanceof Subtask actualSubtask) {
+            checks.add(() -> assertEquals(
+                    expectedSubtask.getEpicId(),
+                    actualSubtask.getEpicId(),
+                    "Epic ID should match"
+            ));
+        }
+
+        if (expected instanceof Epic expectedEpic && actual instanceof Epic actualEpic) {
+            checks.add(() -> assertEquals(
+                    expectedEpic.getSubtaskIds(),
+                    actualEpic.getSubtaskIds(),
+                    "Subtask IDs should match"
+            ));
+        }
         assertAll("AbstractTask fields", checks);
     }
 }
