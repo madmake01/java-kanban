@@ -118,7 +118,7 @@ class AbstractTaskSerializerTest {
 
     @Test
     void deserializeSubtask() {
-        String serialized = "2,Subtask,subtask name,subtask description,DONE,,,,,1";
+        String serialized = "2,Subtask,subtask name,subtask description,DONE,,,,1";
 
         AbstractTask deserialized = AbstractTaskSerializer.deserialize(serialized);
         assertInstanceOf(Subtask.class, deserialized);
