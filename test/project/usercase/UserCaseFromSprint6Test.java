@@ -1,8 +1,9 @@
-package project.manager;
+package project.usercase;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import project.enums.Status;
+import project.manager.TaskManager;
 import project.model.AbstractTask;
 import project.model.Epic;
 import project.model.Subtask;
@@ -18,7 +19,8 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-class InMemoryTaskManagerGeneralTest {
+//отказываюсь выносить это в основной тест
+class UserCaseFromSprint6Test {
 
     TaskManager taskManager;
 
@@ -136,7 +138,7 @@ class InMemoryTaskManagerGeneralTest {
                 .setName("b")
                 .setDescription("b")
                 .setStatus(Status.DONE)
-                .setEpicId(2) //вообще я бы такое тоже проверяла в equals :(
+                .setEpicId(2)
                 .build();
         Subtask otherSubtask = new Subtask.Builder()
                 .setId(1)

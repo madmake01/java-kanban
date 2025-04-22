@@ -2,11 +2,16 @@ package project.manager;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import project.model.AbstractTask;
 import project.model.Task;
+import project.util.TaskUtility;
 
 import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -20,98 +25,54 @@ class InMemoryHistoryManagerTest {
     }
 
     @Test
-    void testAddSingleTask() {
-        Task task = new Task.Builder()
-                .setId(1)
-                .setName("Task 1")
-                .build();
+    void shouldAddSingleTaskToHistory() {
+        AbstractTask task = TaskUtility.createEpic();
 
         historyManager.add(task);
         List<AbstractTask> tasks = historyManager.getDefaultHistory();
 
         assertEquals(1, tasks.size());
-        assertEquals(task, tasks.getFirst());
+        TaskUtility.assertAbstractTaskEquals(task, tasks.getFirst());
     }
 
-    @Test
-    void testAddMultipleTasks() {
-        for (int i = 1; i <= 3; i++) {
-            historyManager.add(new Task.Builder()
-                    .setId(i)
-                    .setName("Task " + i)
-                    .build());
+    @ParameterizedTest(name = "Adding {0} unique tasks should result in {0} history size")
+    @ValueSource(ints = {0, 1, 2, 50, 10000})
+    void shouldAddMultipleUniqueTasksToHistory(int size) {
+        for (int i = 1; i <= size; i++) {
+            historyManager.add(TaskUtility.createTaskBuilder().setId(i).build());
         }
 
         List<AbstractTask> tasks = historyManager.getDefaultHistory();
-        assertEquals(3, tasks.size());
-        assertEquals("Task 1", tasks.get(0).getName());
-        assertEquals("Task 3", tasks.get(2).getName());
+        assertEquals(size, tasks.size());
     }
 
-    @Test
-    void testRemoveMiddleTask() {
-        Task task1 = new Task.Builder().setId(1).setName("Task 1").build();
-        Task task2 = new Task.Builder().setId(2).setName("Task 2").build();
-        Task task3 = new Task.Builder().setId(3).setName("Task 3").build();
+    @ParameterizedTest(name = "Remove task with ID={1} from {0} tasks -> expect size={2}")
+    @CsvSource({
+            "0,  1,  0",
+            "1,  1,  0",
+            "5,  1,  4",
+            "5,  3,  4",
+            "5,  5,  4",
+            "5, 10,  5"
+    })
+    void shouldRemoveTaskFromHistoryCorrectly(int tasksAmount, int idToRemove, int expectedSize) {
+        for (int i = 1; i <= tasksAmount; i++) {
+            historyManager.add(TaskUtility.createTaskBuilder().setId(i).build());
+        }
 
-        historyManager.add(task1);
-        historyManager.add(task2);
-        historyManager.add(task3);
-
-        historyManager.remove(2);
-
+        historyManager.remove(idToRemove);
         List<AbstractTask> tasks = historyManager.getDefaultHistory();
-        assertEquals(2, tasks.size());
-        assertFalse(tasks.contains(task2));
-        assertEquals(task1, tasks.get(0));
-        assertEquals(task3, tasks.get(1));
+
+        assertAll("After removal",
+                () -> assertEquals(expectedSize, tasks.size(), "Unexpected number of tasks"),
+                () -> assertFalse(tasks.stream().anyMatch(t -> t.getId() == idToRemove))
+        );
     }
 
     @Test
-    void testRemoveHead() {
-        Task task1 = new Task.Builder().setId(1).setName("Task 1").build();
-        Task task2 = new Task.Builder().setId(2).setName("Task 2").build();
-
-        historyManager.add(task1);
-        historyManager.add(task2);
-
-        historyManager.remove(1);
-
-        List<AbstractTask> tasks = historyManager.getDefaultHistory();
-        assertEquals(1, tasks.size());
-        assertEquals(task2, tasks.getFirst());
-    }
-
-    @Test
-    void testRemoveTail() {
-        Task task1 = new Task.Builder().setId(1).setName("Task 1").build();
-        Task task2 = new Task.Builder().setId(2).setName("Task 2").build();
-
-        historyManager.add(task1);
-        historyManager.add(task2);
-
-        historyManager.remove(2);
-
-        List<AbstractTask> tasks = historyManager.getDefaultHistory();
-        assertEquals(1, tasks.size());
-        assertEquals(task1, tasks.getFirst());
-    }
-
-    @Test
-    void testRemoveSingleElement() {
-        Task task = new Task.Builder().setId(1).setName("Task 1").build();
-        historyManager.add(task);
-
-        historyManager.remove(1);
-
-        List<AbstractTask> tasks = historyManager.getDefaultHistory();
-        assertTrue(tasks.isEmpty());
-    }
-
-    @Test
-    void testReAddExistingTask() {
-        Task task1 = new Task.Builder().setId(1).setName("Task 1").build();
-        Task task2 = new Task.Builder().setId(2).setName("Task 2").build();
+    void shouldMoveExistingTaskToEndOnReAdd() {
+        Task task1 = TaskUtility.createTaskBuilder().setId(1).build();
+        Task task2 = TaskUtility.createTaskBuilder().setId(2).build();
 
         historyManager.add(task1);
         historyManager.add(task2);
@@ -124,27 +85,22 @@ class InMemoryHistoryManagerTest {
     }
 
     @Test
-    void testRemoveNonExistentTask() {
-        Task task = new Task.Builder().setId(1).setName("Task 1").build();
-        historyManager.add(task);
-
-        historyManager.remove(2);
-
-        List<AbstractTask> tasks = historyManager.getDefaultHistory();
-        assertEquals(1, tasks.size());
-        assertEquals(task, tasks.getFirst());
-    }
-
-    @Test
-    void testRepeatedViewDoesNotIncreaseSize() {
-        Task task = new Task.Builder().setId(1).setName("Task 1").build();
+    void shouldNotDuplicateTaskOnRepeatedAccess() {
+        Task task = TaskUtility.createTaskBuilder().setId(1).build();
 
         for (int i = 0; i < 10; i++) {
             historyManager.add(task);
         }
 
         List<AbstractTask> tasks = historyManager.getDefaultHistory();
-        assertEquals(1, tasks.size(), "Список должен содержать только одну задачу");
-        assertEquals(task, tasks.getFirst(), "Задача должна быть той же самой");
+        assertEquals(1, tasks.size(), "History should contain only one instance of the task");
+        assertEquals(task, tasks.getFirst());
     }
+
+    @Test
+    void shouldReturnEmptyHistoryInitially() {
+        List<AbstractTask> tasks = historyManager.getDefaultHistory();
+        assertTrue(tasks.isEmpty(), "History should be empty after initialization");
+    }
+
 }

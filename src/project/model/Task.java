@@ -27,6 +27,7 @@ public class Task extends AbstractTask {
 
         @Override
         public Task build() {
+            validate();
             return new Task(this);
         }
 

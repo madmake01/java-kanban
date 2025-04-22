@@ -3,7 +3,10 @@ package project.model;
 import project.enums.Status;
 import project.util.AbstractTaskBuilder;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.Objects;
+import java.util.Optional;
 
 public abstract class AbstractTask {
     private final int id;
@@ -11,11 +14,17 @@ public abstract class AbstractTask {
     private final String description;
     private final Status status;
 
+    private final LocalDateTime startTime;
+    private final Duration duration;
+
+
     protected AbstractTask(AbstractTaskBuilder<?, ?> builder) {
         this.id = builder.getId();
         this.name = builder.getName();
         this.description = builder.getDescription();
         this.status = builder.getStatus();
+        this.startTime = builder.getStartTime();
+        this.duration = builder.getDuration();
     }
 
     public int getId() {
@@ -32,6 +41,21 @@ public abstract class AbstractTask {
 
     public Status getStatus() {
         return status;
+    }
+
+    public Optional<LocalDateTime> getStartTime() {
+        return Optional.ofNullable(startTime);
+    }
+
+    public Optional<Duration> getDuration() {
+        return Optional.ofNullable(duration);
+    }
+
+    public Optional<LocalDateTime> getEndTime() {
+        if (Objects.isNull(startTime) || Objects.isNull(duration)) {
+            return Optional.empty();
+        }
+        return Optional.of(startTime.plus(duration));
     }
 
     @Override

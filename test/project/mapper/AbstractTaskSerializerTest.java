@@ -6,7 +6,10 @@ import project.model.AbstractTask;
 import project.model.Epic;
 import project.model.Subtask;
 import project.model.Task;
+import project.util.TaskUtility;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -30,7 +33,7 @@ class AbstractTaskSerializerTest {
 
         String serialized = AbstractTaskSerializer.serialize(task);
 
-        String expected = String.format("%d,Task,%s,%s,%s", id, name, description, status);
+        String expected = String.format("%d,Task,%s,%s,%s,,,,", id, name, description, status);
         assertEquals(expected, serialized);
     }
 
@@ -41,7 +44,7 @@ class AbstractTaskSerializerTest {
         String description = "description";
         Status status = Status.IN_PROGRESS;
 
-        String serialized = String.format("%d,Task,%s,%s,%s", id, name, description, status);
+        String serialized = String.format("%d,Task,%s,%s,%s,,,,", id, name, description, status);
 
         AbstractTask deserialized = AbstractTaskSerializer.deserialize(serialized);
 
@@ -71,14 +74,14 @@ class AbstractTaskSerializerTest {
                 .build();
 
         String serialized = AbstractTaskSerializer.serialize(epic);
-        String expected = String.format("%d,Epic,%s,%s,%s,10,20,30", id, name, description, status);
+        String expected = String.format("%d,Epic,%s,%s,%s,,,,10,20,30", id, name, description, status);
 
         assertEquals(expected, serialized);
     }
 
     @Test
     void deserializeEpic() {
-        String serialized = "1,Epic,epic name,epic description,NEW,10,20,30";
+        String serialized = "1,Epic,epic name,epic description,NEW,,,,10,20,30";
 
         AbstractTask deserialized = AbstractTaskSerializer.deserialize(serialized);
         assertInstanceOf(Epic.class, deserialized);
@@ -108,14 +111,14 @@ class AbstractTaskSerializerTest {
                 .build();
 
         String serialized = AbstractTaskSerializer.serialize(subtask);
-        String expected = String.format("%d,Subtask,%s,%s,%s,%d", id, name, description, status, epicId);
+        String expected = String.format("%d,Subtask,%s,%s,%s,,,,%d", id, name, description, status, epicId);
 
         assertEquals(expected, serialized);
     }
 
     @Test
     void deserializeSubtask() {
-        String serialized = "2,Subtask,subtask name,subtask description,DONE,1";
+        String serialized = "2,Subtask,subtask name,subtask description,DONE,,,,1";
 
         AbstractTask deserialized = AbstractTaskSerializer.deserialize(serialized);
         assertInstanceOf(Subtask.class, deserialized);
@@ -128,4 +131,59 @@ class AbstractTaskSerializerTest {
         assertEquals(1, subtask.getEpicId());
     }
 
+    @Test
+    void taskShouldPreserveFieldsAfterSerializationAndDeserialization() {
+        Task task = new Task.Builder()
+                .setId(123)
+                .setName("test")
+                .setDescription("description")
+                .setStatus(Status.IN_PROGRESS)
+                .setStartTime(LocalDateTime.now())
+                .setDuration(Duration.ofHours(1))
+                .build();
+
+        String serialized = AbstractTaskSerializer.serialize(task);
+        AbstractTask deserialized = AbstractTaskSerializer.deserialize(serialized);
+
+        assertInstanceOf(Task.class, deserialized);
+        TaskUtility.assertAbstractTaskEquals(task, deserialized);
+    }
+
+    @Test
+    void subtaskShouldPreserveFieldsAfterSerializationAndDeserialization() {
+        Subtask subtask = new Subtask.Builder()
+                .setId(456)
+                .setName("subtask-test")
+                .setDescription("subtask description")
+                .setStatus(Status.DONE)
+                .setStartTime(LocalDateTime.now())
+                .setDuration(Duration.ofMinutes(30))
+                .setEpicId(123)
+                .build();
+
+        String serialized = AbstractTaskSerializer.serialize(subtask);
+        AbstractTask deserialized = AbstractTaskSerializer.deserialize(serialized);
+
+        assertInstanceOf(Subtask.class, deserialized);
+        TaskUtility.assertAbstractTaskEquals(subtask, deserialized);
+    }
+
+    @Test
+    void epicShouldPreserveFieldsAfterSerializationAndDeserialization() {
+        Epic epic = new Epic.Builder()
+                .setId(789)
+                .setName("epic-test")
+                .setDescription("epic description")
+                .setStatus(Status.NEW)
+                .setStartTime(LocalDateTime.now())
+                .setDuration(Duration.ofHours(5))
+                .setSubtaskIds(List.of(456, 457, 458))
+                .build();
+
+        String serialized = AbstractTaskSerializer.serialize(epic);
+        AbstractTask deserialized = AbstractTaskSerializer.deserialize(serialized);
+
+        assertInstanceOf(Epic.class, deserialized);
+        TaskUtility.assertAbstractTaskEquals(epic, deserialized);
+    }
 }

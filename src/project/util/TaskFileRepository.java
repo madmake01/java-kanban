@@ -19,7 +19,7 @@ import static project.exception.TaskExceptionMessage.ERROR_SAVING_DATA;
 import static project.exception.TaskExceptionMessage.FILE_SHOULD_START_WITH;
 
 public class TaskFileRepository {
-    public static final String CSV_HEADER = "id,type,name,status,description,additional";
+    public static final String CSV_HEADER = "id,type,name,status,description,starttime,duration,endtime,additional";
 
     private TaskFileRepository() {
     }
@@ -31,12 +31,13 @@ public class TaskFileRepository {
 
             writer.write(CSV_HEADER);
 
-            for (List<AbstractTask> list : taskList) {
-                for (AbstractTask task : list) {
-                    String serializedTask = AbstractTaskSerializer.serialize(task);
-                    writer.newLine();
-                    writer.write(serializedTask);
-                }
+            List<String> serializedTasks = taskList.stream()
+                    .flatMap(List::stream)
+                    .map(AbstractTaskSerializer::serialize).toList();
+
+            for (String serializedTask : serializedTasks) {
+                writer.newLine();
+                writer.write(serializedTask);
             }
 
         } catch (IOException e) {
