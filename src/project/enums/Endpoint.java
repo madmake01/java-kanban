@@ -4,8 +4,7 @@ public enum Endpoint {
     GET_ALL,
     GET,
     GET_EPIC_SUBTASKS,
-    CREATE,
-    UPDATE,
+    POST,
     DELETE_ALL,
     DELETE,
     UNKNOWN

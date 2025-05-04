@@ -22,7 +22,6 @@ public class TaskValidator {
 
     public void validateNewSubTask(Subtask subtask) {
         validateId(subtask.getId());
-        validateId(subtask.getEpicId());
     }
 
     public void validateNewEpic(Epic epic) {

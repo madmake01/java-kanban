@@ -34,13 +34,8 @@ public class TasksController extends BaseHttpHandler {
         switch (endpoint) {
             case GET_ALL -> sendText(exchange, getTasks());
             case GET -> sendText(exchange, getTask(Integer.parseInt(pathParts[1])));
-
-            case CREATE -> {
-                createTask(new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8));
-                sendEmptyResponseWithCode(exchange, 201);
-            }
-            case UPDATE -> {
-                updateTask(new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8));
+            case POST -> {
+                handlePost(exchange);
                 sendEmptyResponseWithCode(exchange, 201);
             }
             case DELETE_ALL -> {
@@ -55,6 +50,16 @@ public class TasksController extends BaseHttpHandler {
         }
     }
 
+    private void handlePost(HttpExchange exchange) throws IOException {
+        String body = new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
+        Task task = gson.fromJson(body, Task.class);
+        if (task.getId() == 0) {
+            createTask(task);
+        } else {
+            updateTask(task);
+        }
+    }
+
     private String getTasks() {
         return gson.toJson(taskManager.getTasks());
     }
@@ -63,13 +68,11 @@ public class TasksController extends BaseHttpHandler {
         return gson.toJson(taskManager.getTaskWithNotification(id));
     }
 
-    private void createTask(String taskToCreate) {
-        Task task = gson.fromJson(taskToCreate, Task.class);
+    private void createTask(Task task) {
         taskManager.addTask(task);
     }
 
-    private void updateTask(String taskToUpdate) {
-        Task task = gson.fromJson(taskToUpdate, Task.class);
+    private void updateTask(Task task) {
         taskManager.updateTask(task);
     }
 

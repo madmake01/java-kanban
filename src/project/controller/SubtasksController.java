@@ -1,8 +1,6 @@
 package project.controller;
 
 import com.google.gson.Gson;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import com.sun.net.httpserver.HttpExchange;
 import project.enums.Endpoint;
 import project.exception.NonexistentEntityException;
@@ -36,13 +34,8 @@ public class SubtasksController extends BaseHttpHandler {
         switch (endpoint) {
             case GET_ALL -> sendText(exchange, getSubtasks());
             case GET -> sendText(exchange, getSubtask(Integer.parseInt(pathParts[1])));
-
-            case CREATE -> {
-                createSubtask(new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8));
-                sendEmptyResponseWithCode(exchange, 201);
-            }
-            case UPDATE -> {
-                updateSubtask(new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8));
+            case POST -> {
+                handlePost(exchange);
                 sendEmptyResponseWithCode(exchange, 201);
             }
             case DELETE_ALL -> {
@@ -57,6 +50,17 @@ public class SubtasksController extends BaseHttpHandler {
         }
     }
 
+    private void handlePost(HttpExchange exchange) throws IOException {
+        String body = new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
+        Subtask subtask = gson.fromJson(body, Subtask.class);
+
+        if (subtask.getId() == 0) {
+            createSubtask(subtask, subtask.getEpicId());
+        } else {
+            updateSubtask(subtask);
+        }
+    }
+
     private String getSubtasks() {
         return gson.toJson(taskManager.getSubtasks());
     }
@@ -65,16 +69,11 @@ public class SubtasksController extends BaseHttpHandler {
         return gson.toJson(taskManager.getSubtaskWithNotification(id));
     }
 
-    private void createSubtask(String subtaskJson) {
-        JsonObject root = JsonParser.parseString(subtaskJson).getAsJsonObject();
-        Subtask subtask = gson.fromJson(root.get("subtask"), Subtask.class);
-        int epicId = root.get("epicId").getAsInt();
-
+    private void createSubtask(Subtask subtask, int epicId) {
         taskManager.addSubtask(subtask, epicId);
     }
 
-    private void updateSubtask(String subtaskJson) {
-        Subtask subtask = gson.fromJson(subtaskJson, Subtask.class);
+    private void updateSubtask(Subtask subtask) {
         taskManager.updateSubtask(subtask);
     }
 
@@ -85,4 +84,5 @@ public class SubtasksController extends BaseHttpHandler {
     private void deleteSubtask(int id) {
         taskManager.deleteSubtask(id);
     }
+
 }

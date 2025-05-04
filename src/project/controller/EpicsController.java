@@ -35,12 +35,8 @@ public class EpicsController extends BaseHttpHandler {
             case GET_ALL -> sendText(exchange, getEpics());
             case GET -> sendText(exchange, getEpic(Integer.parseInt(pathParts[1])));
             case GET_EPIC_SUBTASKS -> sendText(exchange, getEpicSubtasks(Integer.parseInt(pathParts[1])));
-            case CREATE -> {
-                createEpic(new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8));
-                sendEmptyResponseWithCode(exchange, 201);
-            }
-            case UPDATE -> {
-                updateEpic(new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8));
+            case POST -> {
+                handlePost(exchange);
                 sendEmptyResponseWithCode(exchange, 201);
             }
             case DELETE_ALL -> {
@@ -56,6 +52,16 @@ public class EpicsController extends BaseHttpHandler {
         }
     }
 
+    private void handlePost(HttpExchange exchange) throws IOException {
+        String body = new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
+        Epic epic = gson.fromJson(body, Epic.class);
+        if (epic.getId() == 0) {
+            createEpic(epic);
+        } else {
+            updateEpic(epic);
+        }
+    }
+
     private String getEpics() {
         return gson.toJson(taskManager.getEpics());
     }
@@ -68,13 +74,11 @@ public class EpicsController extends BaseHttpHandler {
         return gson.toJson(taskManager.getEpicSubtasks(id));
     }
 
-    private void createEpic(String epicJson) {
-        Epic epic = gson.fromJson(epicJson, Epic.class);
+    private void createEpic(Epic epic) {
         taskManager.addEpic(epic);
     }
 
-    private void updateEpic(String epicJson) {
-        Epic epic = gson.fromJson(epicJson, Epic.class);
+    private void updateEpic(Epic epic) {
         taskManager.updateEpic(epic);
     }
 

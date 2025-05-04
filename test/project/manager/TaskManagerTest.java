@@ -469,23 +469,6 @@ abstract class TaskManagerTest<T extends TaskManager> {
     }
 
     @Test
-    void addSubtask_withMismatchedEpicId_shouldThrowException() {
-        var epic = taskManager.addEpic(TaskUtility.createEpic());
-        int actualEpicId = epic.getId();
-
-        var subtask = new Subtask.Builder()
-                .fromSubtask(TaskUtility.createSubtask())
-                .setEpicId(NONEXISTENT_ID)
-                .build();
-
-        assertThrows(
-                EntityAlreadyExistsException.class,
-                () -> taskManager.addSubtask(subtask, actualEpicId),
-                "Subtask epicId must match the provided one; otherwise, exception expected"
-        );
-    }
-
-    @Test
     void addEpic_withNotEmptySubtasks_shouldThrowException() {
         var invalidEpic = TaskUtility.createEpicBuilder()
                 .setSubtaskIds(List.of(1))

@@ -50,8 +50,6 @@ public abstract class BaseHttpHandler implements HttpHandler {
     }
 
     protected Endpoint getTaskEndpoint(String[] pathParts, String requestMethod) {
-
-
         final int pathLength = pathParts.length;
         return switch (requestMethod) {
             case "GET" -> {
@@ -61,7 +59,6 @@ public abstract class BaseHttpHandler implements HttpHandler {
                 if (pathLength == 2 && isInteger(pathParts[1])) {
                     yield Endpoint.GET;
                 }
-
                 if (isEpicSubtasks(pathParts, pathLength)) {
                     yield Endpoint.GET_EPIC_SUBTASKS;
                 }
@@ -71,10 +68,7 @@ public abstract class BaseHttpHandler implements HttpHandler {
 
             case "POST" -> {
                 if (pathLength == 1) {
-                    yield Endpoint.CREATE;
-                }
-                if (pathLength == 2 && isInteger(pathParts[1])) {
-                    yield Endpoint.UPDATE;
+                    yield Endpoint.POST;
                 }
                 yield Endpoint.UNKNOWN;
             }
