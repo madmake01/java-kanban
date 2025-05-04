@@ -2,9 +2,15 @@ package project.server;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.sun.net.httpserver.Filter;
+import com.sun.net.httpserver.HttpContext;
 import com.sun.net.httpserver.HttpServer;
 import project.controller.EpicsController;
+import project.controller.HistoryController;
+import project.controller.PrioritizedTasksController;
+import project.controller.SubtasksController;
 import project.controller.TasksController;
+import project.filter.ExceptionHandler;
 import project.manager.TaskManager;
 import project.model.Epic;
 import project.util.Managers;
@@ -16,6 +22,7 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.List;
 
 public class HttpTaskServer {
 
@@ -37,9 +44,20 @@ public class HttpTaskServer {
     public void start() {
         Gson gson = createGson();
 
-        server.createContext("/tasks", new TasksController(taskManager, gson));
-        server.createContext("/epics", new EpicsController(taskManager, gson));
-        server.createContext("/subtasks", new EpicsController(taskManager, gson));
+        List<HttpContext> contexts = List.of(
+                server.createContext("/tasks", new TasksController(taskManager, gson)),
+                server.createContext("/epics", new EpicsController(taskManager, gson)),
+                server.createContext("/subtasks", new SubtasksController(taskManager, gson)),
+                server.createContext("/history", new HistoryController(taskManager, gson)),
+                server.createContext("/prioritized", new PrioritizedTasksController(taskManager, gson))
+        );
+
+        Filter commonFilter = new ExceptionHandler();
+
+        for (HttpContext context : contexts) {
+            context.getFilters().add(commonFilter);
+        }
+
         server.start();
     }
 

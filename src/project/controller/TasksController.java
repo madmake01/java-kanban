@@ -3,6 +3,7 @@ package project.controller;
 import com.google.gson.Gson;
 import com.sun.net.httpserver.HttpExchange;
 import project.enums.Endpoint;
+import project.exception.NonexistentEntityException;
 import project.manager.TaskManager;
 import project.model.Task;
 
@@ -50,7 +51,7 @@ public class TasksController extends BaseHttpHandler {
                 deleteTask(Integer.parseInt(pathParts[1]));
                 sendEmptyResponseWithCode(exchange, 200);
             }
-            default -> sendEmptyResponseWithCode(exchange, 400);
+            default -> throw new NonexistentEntityException("Endpoint not found: " + requestMethod + " " + requestPath);
         }
     }
 

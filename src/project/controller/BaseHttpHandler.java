@@ -1,6 +1,7 @@
 package project.controller;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import project.enums.Endpoint;
@@ -24,12 +25,23 @@ public abstract class BaseHttpHandler implements HttpHandler {
         this.gson = gson;
     }
 
-    protected void sendText(HttpExchange exchange, String text) throws IOException {
+    public static void send(HttpExchange exchange, String text, int code) throws IOException {
         byte[] response = text.getBytes(StandardCharsets.UTF_8);
         exchange.getResponseHeaders().add("Content-Type", "application/json;charset=utf-8");
-        exchange.sendResponseHeaders(200, response.length);
+        exchange.sendResponseHeaders(code, response.length);
         exchange.getResponseBody().write(response);
         exchange.close();
+    }
+
+    public static void sendError(HttpExchange exchange, String text, int code) throws IOException {
+        JsonObject error = new JsonObject();
+        error.addProperty("message", text);
+
+        send(exchange, text, code);
+    }
+
+    protected void sendText(HttpExchange exchange, String text) throws IOException {
+        send(exchange, text, 200);
     }
 
     protected void sendEmptyResponseWithCode(HttpExchange exchange, int code) throws IOException {

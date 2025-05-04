@@ -34,6 +34,10 @@ public class TaskValidator {
         if (epic.getStatus() != DEFAULT_STATUS) {
             throw new InvalidParameterException(NEW_EPIC_SHOULD_HAVE_DEFAULT_STATUS);
         }
+
+        if (epic.getStartTime().isPresent() || epic.getEndTime().isPresent() || epic.getDuration().isPresent()) {
+            throw new InvalidParameterException(NEW_EPIC_SHOULD_BE_EMPTY);
+        }
     }
 
     public void ensureSubtasksEpicsAreEqual(Subtask oldSubtask, Subtask newSubtask) {

@@ -5,6 +5,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.sun.net.httpserver.HttpExchange;
 import project.enums.Endpoint;
+import project.exception.NonexistentEntityException;
 import project.manager.TaskManager;
 import project.model.Subtask;
 
@@ -52,7 +53,7 @@ public class SubtasksController extends BaseHttpHandler {
                 deleteSubtask(Integer.parseInt(pathParts[1]));
                 sendEmptyResponseWithCode(exchange, 200);
             }
-            default -> sendEmptyResponseWithCode(exchange, 400);
+            default -> throw new NonexistentEntityException("Endpoint not found: " + requestMethod + " " + requestPath);
         }
     }
 
