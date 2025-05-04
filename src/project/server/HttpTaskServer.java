@@ -28,22 +28,20 @@ public class HttpTaskServer {
 
     private final HttpServer server;
     private final TaskManager taskManager;
+    private final Gson gson;
 
-    public HttpTaskServer(HttpServer server, TaskManager taskManager) {
-        this.server = server;
+    public HttpTaskServer(TaskManager taskManager) throws IOException {
+        this.server = HttpServer.create(new InetSocketAddress(8080), 0);
         this.taskManager = taskManager;
+        this.gson = createGson();
     }
 
     public static void main(String[] args) throws IOException {
-        HttpServer server = HttpServer.create(new InetSocketAddress(8080), 0);
-
-        HttpTaskServer httpTaskServer = new HttpTaskServer(server, Managers.getDefaultTaskManager());
+        HttpTaskServer httpTaskServer = new HttpTaskServer(Managers.getDefaultTaskManager());
         httpTaskServer.start();
     }
 
     public void start() {
-        Gson gson = createGson();
-
         List<HttpContext> contexts = List.of(
                 server.createContext("/tasks", new TasksController(taskManager, gson)),
                 server.createContext("/epics", new EpicsController(taskManager, gson)),
@@ -63,6 +61,10 @@ public class HttpTaskServer {
 
     public void stop() {
         server.stop(0);
+    }
+
+    public Gson getGson() {
+        return gson;
     }
 
     private static Gson createGson() {
