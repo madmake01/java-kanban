@@ -34,10 +34,7 @@ public class SubtasksController extends BaseHttpHandler {
         switch (endpoint) {
             case GET_ALL -> sendText(exchange, getSubtasks());
             case GET -> sendText(exchange, getSubtask(Integer.parseInt(pathParts[1])));
-            case POST -> {
-                handlePost(exchange);
-                sendEmptyResponseWithCode(exchange, 201);
-            }
+            case POST -> send(exchange, handlePost(exchange), 201);
             case DELETE_ALL -> {
                 deleteSubtasks();
                 sendEmptyResponseWithCode(exchange, 200);
@@ -50,14 +47,14 @@ public class SubtasksController extends BaseHttpHandler {
         }
     }
 
-    private void handlePost(HttpExchange exchange) throws IOException {
+    private String handlePost(HttpExchange exchange) throws IOException {
         String body = new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
         Subtask subtask = gson.fromJson(body, Subtask.class);
 
         if (subtask.getId() == 0) {
-            createSubtask(subtask, subtask.getEpicId());
+            return createSubtask(subtask, subtask.getEpicId());
         } else {
-            updateSubtask(subtask);
+            return updateSubtask(subtask);
         }
     }
 
@@ -69,12 +66,14 @@ public class SubtasksController extends BaseHttpHandler {
         return gson.toJson(taskManager.getSubtaskWithNotification(id));
     }
 
-    private void createSubtask(Subtask subtask, int epicId) {
-        taskManager.addSubtask(subtask, epicId);
+    private String createSubtask(Subtask subtask, int epicId) {
+        Subtask added = taskManager.addSubtask(subtask, epicId);
+        return gson.toJson(added);
     }
 
-    private void updateSubtask(Subtask subtask) {
-        taskManager.updateSubtask(subtask);
+    private String updateSubtask(Subtask subtask) {
+        Subtask updated = taskManager.updateSubtask(subtask);
+        return gson.toJson(updated);
     }
 
     private void deleteSubtasks() {
