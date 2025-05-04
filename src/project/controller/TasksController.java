@@ -33,13 +33,24 @@ public class TasksController extends BaseHttpHandler {
         switch (endpoint) {
             case GET_ALL -> sendText(exchange, getTasks());
             case GET -> sendText(exchange, getTask(Integer.parseInt(pathParts[1])));
-            case CREATE -> createTask(new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8));
-            case UPDATE -> updateTask(new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8));
 
-            case DELETE_ALL -> deleteTasks();
-            case DELETE -> deleteTask(Integer.parseInt(pathParts[1]));
-            case UNKNOWN -> {
+            case CREATE -> {
+                createTask(new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8));
+                sendEmptyResponseWithCode(exchange, 201);
             }
+            case UPDATE -> {
+                updateTask(new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8));
+                sendEmptyResponseWithCode(exchange, 201);
+            }
+            case DELETE_ALL -> {
+                deleteTasks();
+                sendEmptyResponseWithCode(exchange, 200);
+            }
+            case DELETE -> {
+                deleteTask(Integer.parseInt(pathParts[1]));
+                sendEmptyResponseWithCode(exchange, 200);
+            }
+            default -> sendEmptyResponseWithCode(exchange, 400);
         }
     }
 

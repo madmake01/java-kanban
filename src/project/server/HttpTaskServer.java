@@ -3,12 +3,14 @@ package project.server;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.sun.net.httpserver.HttpServer;
+import project.controller.EpicsController;
 import project.controller.TasksController;
 import project.manager.InMemoryHistoryManager;
 import project.manager.InMemoryTaskManager;
 import project.manager.TaskManager;
 import project.util.DurationAdapter;
 import project.util.LocalDateTimeAdapter;
+import project.util.Managers;
 import project.util.TaskValidator;
 
 import java.io.IOException;
@@ -34,8 +36,10 @@ public class HttpTaskServer {
                 .registerTypeAdapter(Duration.class, new DurationAdapter())
                 .create();
 
-        server.createContext("/tasks", new TasksController(gson));
-
+        TaskManager defaultTaskManager = Managers.getDefaultTaskManager();
+        server.createContext("/tasks", new TasksController(defaultTaskManager, gson));
+        server.createContext("/epics", new EpicsController(defaultTaskManager, gson));
+        server.createContext("/subtasks", new EpicsController(defaultTaskManager, gson));
         HttpTaskServer httpTaskServer = new HttpTaskServer(server, new InMemoryTaskManager(new TaskValidator(),
                 new InMemoryHistoryManager()));
         httpTaskServer.start();

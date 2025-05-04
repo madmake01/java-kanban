@@ -32,6 +32,11 @@ public abstract class BaseHttpHandler implements HttpHandler {
         exchange.close();
     }
 
+    protected void sendEmptyResponseWithCode(HttpExchange exchange, int code) throws IOException {
+        exchange.sendResponseHeaders(code, 0);
+        exchange.close();
+    }
+
     protected Endpoint getTaskEndpoint(String[] pathParts, String requestMethod) {
 
 
@@ -44,6 +49,11 @@ public abstract class BaseHttpHandler implements HttpHandler {
                 if (pathLength == 2 && isInteger(pathParts[1])) {
                     yield Endpoint.GET;
                 }
+
+                if (isEpicSubtasks(pathParts, pathLength)) {
+                    yield Endpoint.GET_EPIC_SUBTASKS;
+                }
+
                 yield Endpoint.UNKNOWN;
             }
 
@@ -71,6 +81,12 @@ public abstract class BaseHttpHandler implements HttpHandler {
         };
     }
 
+    private boolean isEpicSubtasks(String[] pathParts, int pathLength) {
+        return pathLength == 3
+                && "epics".equals(pathParts[0])
+                && "subtasks".equals(pathParts[2])
+                && isInteger(pathParts[1]);
+    }
 
     private boolean isInteger(String str) {
         try {
