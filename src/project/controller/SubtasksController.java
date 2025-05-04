@@ -1,6 +1,8 @@
 package project.controller;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.sun.net.httpserver.HttpExchange;
 import project.enums.Endpoint;
 import project.manager.TaskManager;
@@ -63,9 +65,11 @@ public class SubtasksController extends BaseHttpHandler {
     }
 
     private void createSubtask(String subtaskJson) {
-        Subtask subtask = gson.fromJson(subtaskJson, Subtask.class);
-        // Предполагается, что epicId входит в subtask
-        taskManager.addSubtask(subtask, subtask.getEpicId());
+        JsonObject root = JsonParser.parseString(subtaskJson).getAsJsonObject();
+        Subtask subtask = gson.fromJson(root.get("subtask"), Subtask.class);
+        int epicId = root.get("epicId").getAsInt();
+
+        taskManager.addSubtask(subtask, epicId);
     }
 
     private void updateSubtask(String subtaskJson) {
