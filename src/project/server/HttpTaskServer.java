@@ -8,7 +8,9 @@ import project.controller.TasksController;
 import project.manager.InMemoryHistoryManager;
 import project.manager.InMemoryTaskManager;
 import project.manager.TaskManager;
+import project.model.Epic;
 import project.util.DurationAdapter;
+import project.util.EpicDeserializer;
 import project.util.LocalDateTimeAdapter;
 import project.util.Managers;
 import project.util.TaskValidator;
@@ -34,6 +36,7 @@ public class HttpTaskServer {
         Gson gson = new GsonBuilder()
                 .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeAdapter())
                 .registerTypeAdapter(Duration.class, new DurationAdapter())
+                .registerTypeAdapter(Epic.class, new EpicDeserializer())
                 .create();
 
         TaskManager defaultTaskManager = Managers.getDefaultTaskManager();

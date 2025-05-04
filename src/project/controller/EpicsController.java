@@ -64,7 +64,7 @@ public class EpicsController extends BaseHttpHandler {
     }
 
     private String getEpicSubtasks(int id) {
-        return gson.toJson(getEpicSubtasks(id));
+        return gson.toJson(taskManager.getEpicSubtasks(id));
     }
 
     private void createEpic(String epicJson) {
