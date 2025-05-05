@@ -7,7 +7,7 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 
 public abstract class AbstractTaskBuilder<T extends AbstractTask, B extends AbstractTaskBuilder<T, B>> {
-    public static final int DEFAULT_ID = -1;
+    public static final int DEFAULT_ID = 0;
     public static final Status DEFAULT_STATUS = Status.NEW;
 
     private int id = DEFAULT_ID;

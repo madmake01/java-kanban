@@ -5,6 +5,7 @@ import project.util.AbstractTaskBuilder;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -23,7 +24,9 @@ public abstract class AbstractTask {
         this.name = builder.getName();
         this.description = builder.getDescription();
         this.status = builder.getStatus();
-        this.startTime = builder.getStartTime();
+        this.startTime = builder.getStartTime() == null
+                ? null
+                : builder.getStartTime().truncatedTo(ChronoUnit.SECONDS);
         this.duration = builder.getDuration();
     }
 

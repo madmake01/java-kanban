@@ -22,7 +22,6 @@ public class TaskValidator {
 
     public void validateNewSubTask(Subtask subtask) {
         validateId(subtask.getId());
-        validateId(subtask.getEpicId());
     }
 
     public void validateNewEpic(Epic epic) {
@@ -33,6 +32,10 @@ public class TaskValidator {
         }
         if (epic.getStatus() != DEFAULT_STATUS) {
             throw new InvalidParameterException(NEW_EPIC_SHOULD_HAVE_DEFAULT_STATUS);
+        }
+
+        if (epic.getStartTime().isPresent() || epic.getEndTime().isPresent() || epic.getDuration().isPresent()) {
+            throw new InvalidParameterException(NEW_EPIC_SHOULD_BE_EMPTY);
         }
     }
 
